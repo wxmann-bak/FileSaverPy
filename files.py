@@ -56,10 +56,7 @@ class URLSource(object):
         else:
             self.filebase = filename
             self.ext = None
-        if timeextractor:
-            self.timestamp = timeextractor(self.url)
-        else:
-            self.timestamp = dt.utcnow()
+        self.timestamp = dt.utcnow() if timeextractor is None else timeextractor(self.url)
 
     def __str__(self):
         return self.url
@@ -87,5 +84,5 @@ class DirectoryTarget(object):
 
     def copyfrom(self, src, mutator=None):
         thetime = dt.utcnow() if src.timestamp is None else src.timestamp
-        file = src.filebase if not mutator else mutator(src.filebase)
+        file = src.filebase if mutator is None else mutator(src.filebase)
         return FileTarget(self.folder, file=file, ext=src.ext, timestamp=thetime)

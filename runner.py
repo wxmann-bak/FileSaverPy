@@ -1,7 +1,12 @@
+from datetime import datetime
+from plugins import ral
+
 __author__ = 'tangz'
 
-import saver
-
 if __name__ == '__main__':
-    savefromral = saver.BatchSaver(exts=['png'], filter=lambda x: 'black' in x)
-    savefromral.saveall('http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/', 'C:\\Users\\tangz\\Documents\\pythontest')
+    station = 'KDLH'
+    saveloc = 'C:\\Users\\tangz\\Documents\\pythontest'
+    start = datetime(2016, 5, 10, 12, 0)
+    end = datetime(2016, 5, 10, 13, 0)
+    ral.savefromral(station, saveloc, start, end)
+

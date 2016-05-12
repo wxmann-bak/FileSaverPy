@@ -1,0 +1,22 @@
+from datetime import datetime
+import re
+import saver
+
+__author__ = 'tangz'
+
+def savefromral(station, savelocation, start, end, interval=None):
+    thesaver = getbatchsaver(interval, start, end)
+    url = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/" + station
+    mutator = lambda x: station + '_' + x
+    thesaver.saveall(url, savelocation, mutator)
+
+def getbatchsaver(interval, start, end):
+    timeconfig = saver.TimeConfig(interval, start, end)
+    return saver.BatchSaver(exts=['png'], filter=lambda x: 'black' in x,
+                            timeextractor=ral_timeextractor, timeconfig=timeconfig)
+
+def ral_timeextractor(file):
+    regex = "\d{8}_\d{6}"
+    dateformat = '%Y%m%d_%H%M%S'
+    datetimestr = re.search(regex, file).group(0)
+    return datetime.strptime(datetimestr, dateformat)
