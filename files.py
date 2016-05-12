@@ -28,6 +28,10 @@ def withslash(folder):
     return folder if folder.endswith('/') or folder.endswith('\\') else folder + '/'
 
 
+class InvalidResourceError(Exception):
+    pass
+
+
 class URLSource(object):
     def __init__(self, url, timeextractor=None):
         self.url = url
@@ -39,17 +43,20 @@ class URLSource(object):
     def extractall(self, timeextractor):
         def checkparts(parts):
             if not parts:
-                raise ValueError("Cannot parse file name from: " + self.url)
+                raise InvalidResourceError("Cannot parse resource name from: " + self.url)
         urlparts = re.split('/', self.url)
         checkparts(urlparts)
-        filename = urlparts[len(urlparts) - 1]
+        filename = urlparts[-1]
         filenameparts = re.split('\.', filename)
         checkparts(filenameparts)
         filepartslen = len(filenameparts)
-
-        self.filebase = '.'.join(filenameparts[:filepartslen-1])
-        self.ext = filenameparts[filepartslen-1]
-        if timeextractor is not None:
+        if filepartslen > 1:
+            self.filebase = '.'.join(filenameparts[:filepartslen-1])
+            self.ext = filenameparts[-1]
+        else:
+            self.filebase = filename
+            self.ext = None
+        if timeextractor:
             self.timestamp = timeextractor(self.url)
         else:
             self.timestamp = dt.utcnow()
@@ -59,7 +66,7 @@ class URLSource(object):
 
 
 class FileTarget(object):
-    def __init__(self, folder, file, ext, timestamp=None):
+    def __init__(self, folder, file, ext, timestamp):
         self.folder = folder
         self.file = file
         self.ext = ext
@@ -72,34 +79,13 @@ class FileTarget(object):
 class DirectoryTarget(object):
     def __init__(self, folder):
         self.folder = folder
-        self._filebuilder = None
 
-    def usetimestamp(self, base, ext):
-        def timestampbuild():
-            thetime = dt.utcnow()
-            file = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
-            return FileTarget(self.folder, file, ext, timestamp=thetime)
-        self._filebuilder = timestampbuild
+    def timestamped(self, base, ext):
+        thetime = dt.utcnow()
+        file = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
+        return FileTarget(self.folder, file, ext, timestamp=thetime)
 
-    def usecopy(self, src, prependval=None, appendval=None):
-        def otherurlbuild():
-            thetime = dt.utcnow() if src.timestamp is None else src.timestamp
-            file = buildfilename(base=src.filebase, prependval=prependval, appendval=appendval)
-            return FileTarget(self.folder, file=file, ext=src.ext, timestamp=thetime)
-        self._filebuilder = otherurlbuild
-
-    def getfiletarget(self):
-        if self._filebuilder is not None:
-            return self._filebuilder()
-        else:
-            return None
-
-
-
-
-
-
-
-
-
-
+    def copyfrom(self, src, mutator=None):
+        thetime = dt.utcnow() if src.timestamp is None else src.timestamp
+        file = src.filebase if not mutator else mutator(src.filebase)
+        return FileTarget(self.folder, file=file, ext=src.ext, timestamp=thetime)
