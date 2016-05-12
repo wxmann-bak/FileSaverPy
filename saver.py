@@ -1,18 +1,18 @@
 import os
 import re
+import urllib.request
 import files
 import html.parser as hp
 import logging
 
 __author__ = 'tangz'
 
-import urllib.request as urlreq
 
 def dosave(srcfile, destloc):
     if os.path.isfile(destloc):
         raise SaveError("File: {0} already exists, cannot save it".format(destloc))
     logging.info("Saving file from {0} to {1}".format(srcfile, destloc))
-    urlreq.urlretrieve(srcfile, destloc)
+    urllib.request.urlretrieve(srcfile, destloc)
 
 
 class TimeConfig(object):
@@ -88,7 +88,8 @@ class BatchSaver(object):
 
 
 def gethtmlforpage(url):
-    res = urlreq.urlopen(url)
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    res = urllib.request.urlopen(req)
     allhtmlbytes = res.read()
     return allhtmlbytes.decode('UTF-8')
 
