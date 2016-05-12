@@ -1,12 +1,17 @@
+import os
 import re
 import files
 import html.parser as hp
+import logging
 
 __author__ = 'tangz'
 
 import urllib.request as urlreq
 
 def dosave(srcfile, destloc):
+    if os.path.isfile(destloc):
+        raise SaveError("File: {0} already exists, cannot save it".format(destloc))
+    logging.info("Saving file from {0} to {1}".format(srcfile, destloc))
     urlreq.urlretrieve(srcfile, destloc)
 
 
@@ -94,6 +99,9 @@ class LinksHTMLParser(hp.HTMLParser):
     def handle_starttag(self, tag, attrs):
         self.foundlinks += [attrval for attr, attrval in attrs if tag == 'a' and attr == 'href']
 
+
+class SaveError(Exception):
+    pass
 
 class HTTPResponseError(Exception):
     pass

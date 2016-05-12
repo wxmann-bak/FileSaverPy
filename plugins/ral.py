@@ -10,9 +10,9 @@ def savefromral(station, savelocation, start, end, interval=None):
     mutator = lambda x: station + '_' + x
     thesaver.saveall(url, savelocation, mutator)
 
-def getbatchsaver(interval, start, end):
+def getbatchsaver(interval, start, end, bg='black'):
     timeconfig = saver.TimeConfig(interval, start, end)
-    return saver.BatchSaver(exts=['png'], filter=lambda x: 'black' in x,
+    return saver.BatchSaver(exts=['png'], filter=lambda x: bg in x,
                             timeextractor=ral_timeextractor, timeconfig=timeconfig)
 
 def ral_timeextractor(file):
