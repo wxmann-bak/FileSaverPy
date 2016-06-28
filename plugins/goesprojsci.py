@@ -8,7 +8,7 @@ __author__ = 'tangz'
 
 def savegoesprojsci(sector, savelocation, start, end, interval=timedelta(minutes=12)):
     filename = '{0}{1}_visSave_{2}.log'.format(files.withslash(savelocation), sector,
-                                               datetime.utcnow().strftime('%Y%m%d_%H%M'))
+                                               datetime.utcnow().strftime('%Y%m%d_%H%M%S'))
     logging.basicConfig(filename=filename, level=logging.INFO)
 
     thesaver = getbatchsaver(interval, start, end)
@@ -18,10 +18,13 @@ def savegoesprojsci(sector, savelocation, start, end, interval=timedelta(minutes
 
 def getbatchsaver(interval, start, end):
     timeconfig = saver.TimeConfig(interval, start, end)
-    return saver.BatchSaver(exts=['tif'], timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
+    removelatest = lambda file: 'latest' not in file
+    return saver.BatchSaver(exts=['tif'], filter=removelatest, timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
 
 def goesgsfc_timeextr(file):
     regex = '\d{10}'
     dateformat = '%y%m%d%H%M'
-    datestr = re.search(regex, file).group(0)
-    return datetime.strptime(datestr, dateformat)
+    datepattern = re.search(regex, file)
+    if not datepattern:
+        raise files.InvalidResourceError("Cannot find date-time for file: {0}".format(file))
+    return datetime.strptime(datepattern.group(0), dateformat)

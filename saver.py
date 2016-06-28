@@ -16,7 +16,7 @@ def dosave(srcfile, destloc):
 
 
 class TimeConfig(object):
-    def __init__(self, interval=None, start=None, end=None):
+    def __init__(self, interval, start, end):
         self.interval = interval
         if start > end:
             raise ValueError("Start time: {0} > end time: {1}".format(start, end))
@@ -106,5 +106,3 @@ class SaveError(Exception):
 
 class HTTPResponseError(Exception):
     pass
-
-
