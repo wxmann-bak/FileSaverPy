@@ -4,7 +4,7 @@ __author__ = 'tangz'
 
 from datetime import datetime as dt
 
-DATEFORMAT = '%Y%m%d_%H%M'
+DATEFORMAT = '%Y%m%d_%H%M%S'
 
 def gettimestamp(datetime=None, frmt=DATEFORMAT):
     if datetime is None:
@@ -77,9 +77,10 @@ class DirectoryTarget(object):
     def __init__(self, folder):
         self.folder = folder
 
-    def timestamped(self, base, ext):
+    def timestamped(self, base, ext, mutator=None):
         thetime = dt.utcnow()
-        file = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
+        timestampedfile = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
+        file = timestampedfile if mutator is None else mutator(timestampedfile)
         return FileTarget(self.folder, file, ext, timestamp=thetime)
 
     def copyfrom(self, src, mutator=None):

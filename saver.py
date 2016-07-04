@@ -1,9 +1,15 @@
 import os
 import re
+import sched
+from threading import Timer
+import threading
 import urllib.request
+from datetime import timedelta
+import schedule
 import files
 import html.parser as hp
 import logging
+import time
 
 __author__ = 'tangz'
 
@@ -16,9 +22,9 @@ def dosave(srcfile, destloc):
 
 
 class TimeConfig(object):
-    def __init__(self, interval, start, end):
+    def __init__(self, interval, start=None, end=None):
         self.interval = interval
-        if start > end:
+        if start and end and start > end:
             raise ValueError("Start time: {0} > end time: {1}".format(start, end))
         self.start = start
         self.end = end
@@ -85,6 +91,57 @@ class BatchSaver(object):
         dirtarg = files.DirectoryTarget(saveloc)
         for url in urls:
             self._saveone(url, dirtarg, mutator=mutator)
+
+
+class PeriodicSaver(object):
+    def __init__(self):
+        self.jobs = []
+
+    # def _savewithtarg(self, url, dirtarg, mutator):
+    #     urlsrc = files.URLSource(url)
+    #     def actualsave():
+    #         targloc = dirtarg.timestamped(urlsrc.filebase, urlsrc.ext, mutator=mutator)
+    #         dosave(url, str(targloc))
+    #     schedule_action(self.timeconfig.interval, actualsave)
+    #     return True
+
+    def addjob(self, onlineurl, saveloc, interval, mutator=None):
+        dirtarg = files.DirectoryTarget(saveloc)
+        urlsrc = files.URLSource(onlineurl)
+        self.jobs.append(_SaveJob(interval, urlsrc, dirtarg, mutator))
+
+    def executesaves(self):
+        for job in self.jobs:
+            job.start()
+
+    # def saveall(self, onlineurl, saveloc, mutator=None):
+    #
+    #     self._savewithtarg(onlineurl, dirtarg, mutator=mutator)
+
+
+class _SaveJob(threading.Thread):
+    def __init__(self, interval, urlsrc, dirtarg, mutator):
+        threading.Thread.__init__(self)
+        self.urlsrc = urlsrc
+        self.dirtarg = dirtarg
+        self.mutator = mutator
+        self.interval = interval
+
+    def run(self):
+        while True:
+            targloc = self.dirtarg.timestamped(self.urlsrc.filebase, self.urlsrc.ext, self.mutator)
+            dosave(self.urlsrc.url, str(targloc))
+            time.sleep(self.interval.seconds)
+
+
+
+def schedule_action(interval, func):
+    intrv_sec = interval.seconds
+    schedule.every(intrv_sec).seconds.do(func)
+    func()
+    while True:
+        schedule.run_pending()
+
 
 
 def gethtmlforpage(url):
