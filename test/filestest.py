@@ -1,6 +1,6 @@
 import unittest
 
-import files
+from util import files
 
 __author__ = 'tangz'
 

@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 import logging
 import re
-import files
-import saver
+
+from util import files, timing
+from savers import batch
+
 
 __author__ = 'tangz'
 
@@ -17,9 +19,9 @@ def savegoesprojsci(sector, savelocation, start, end, interval=timedelta(minutes
     thesaver.saveall(url, savelocation, mutator)
 
 def getbatchsaver(interval, start, end):
-    timeconfig = saver.TimeConfig(interval, start, end)
+    timeconfig = timing.TimeConfig(interval, start, end)
     removelatest = lambda file: 'latest' not in file
-    return saver.BatchSaver(exts=['tif'], filter=removelatest, timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
+    return batch.BatchSaver(exts=['tif'], filter=removelatest, timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
 
 def goesgsfc_timeextr(file):
     regex = '\d{10}'

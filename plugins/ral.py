@@ -1,8 +1,10 @@
 from datetime import datetime
 import logging
 import re
-import files
-import saver
+from savers import batch
+
+from util import files, timing
+
 
 __author__ = 'tangz'
 
@@ -17,8 +19,8 @@ def savefromral(station, savelocation, start, end, interval=None):
     thesaver.saveall(url, savelocation, mutator)
 
 def getbatchsaver(interval, start, end, bg='black'):
-    timeconfig = saver.TimeConfig(interval, start, end)
-    return saver.BatchSaver(exts=['png'], filter=lambda x: bg in x,
+    timeconfig = timing.TimeConfig(interval, start, end)
+    return batch.BatchSaver(exts=['png'], filter=lambda x: bg in x,
                             timeextractor=ral_timeextractor, timeconfig=timeconfig)
 
 def ral_timeextractor(file):
