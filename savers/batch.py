@@ -2,7 +2,7 @@ import re
 
 from util import files
 from util import http, timing
-import savers.common as cmn
+from savers import common
 
 __author__ = 'tangz'
 
@@ -27,8 +27,8 @@ class BatchSaver(object):
     def _saveone(self, url, dirtarg, mutator):
         src = files.URLSource(url, timeextractor=self.timeextractor)
         if self._passes_outsidefilter(src) and self._passes_extfilter(src) and timing.passestime(src, self.timeconfig, self.hist):
-            targloc = dirtarg.copyfrom(src, mutator)
-            cmn.dosave(url, str(targloc))
+            targloc = dirtarg.filename_from(src, mutator)
+            common.dosave(url, str(targloc))
             self.hist.append(targloc)
             return True
         else:
