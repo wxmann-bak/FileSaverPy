@@ -5,9 +5,9 @@ __author__ = 'tangz'
 
 def save_ral_radar():
     station = "KRLX"
-    saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\160623-24_WVFloods'
-    start = datetime(2016, 6, 23, 5, 0)
-    end = datetime(2016, 6, 24, 2, 0)
+    saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\testscript'
+    start = datetime(2016, 7, 3, 5, 0)
+    end = datetime(2016, 7, 3, 7, 0)
     ral.savefromral(station, saveloc, start=start, end=end, interval=timedelta(minutes=9))
 
 
@@ -20,12 +20,19 @@ def save_goesproj_vis():
 
 
 def save_ssd_periodic():
-    prepend = "Blas-"
-    url_avn = "http://www.ssd.noaa.gov/PS/TROP/floaters/03E/imagery/avn-animated.gif"
-    url_rgb = "http://www.ssd.noaa.gov/PS/TROP/floaters/03E/imagery/rgb-animated.gif"
-    saveloc = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Blas"
-    interval = timedelta(seconds=6)
-    ssd.save_ssd(prepend, [url_avn, url_rgb], saveloc, interval)
+    blas = "Blas-"
+    avn_blas = "http://www.ssd.noaa.gov/PS/TROP/floaters/03E/imagery/avn-animated.gif"
+    rgb_blas = "http://www.ssd.noaa.gov/PS/TROP/floaters/03E/imagery/rgb-animated.gif"
+    saveloc_blas = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Blas"
+
+    nepartak = "Nepartak-"
+    avn_nepartak = "http://www.ssd.noaa.gov/PS/TROP/floaters/02W/imagery/avn-animated.gif"
+    rgb_nepartak = "http://www.ssd.noaa.gov/PS/TROP/floaters/02W/imagery/rgb-animated.gif"
+    saveloc_nepartak = "C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Nepartak"
+
+    interval = timedelta(seconds=10)
+    ssd.save_ssd(blas, [avn_blas, rgb_blas], saveloc_blas, interval)
+    ssd.save_ssd(nepartak, [avn_nepartak, rgb_nepartak], saveloc_nepartak, interval)
 
 if __name__ == '__main__':
     save_ssd_periodic()
