@@ -27,7 +27,7 @@ def passestime(urlsrc, timeconfig, hist):
         intervalpasses = True
     elif timeconfig.interval:
         dt = urlsrc.timestamp - hist[-1].timestamp
-        intervalpasses = dt > timeconfig.interval
+        intervalpasses = dt >= timeconfig.interval
     else:
         intervalpasses = True
 
