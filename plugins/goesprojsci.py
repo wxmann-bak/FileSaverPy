@@ -18,10 +18,18 @@ def savegoesprojsci(sector, savelocation, start, end, interval=timedelta(minutes
     mutator = lambda x: '{0}_{1}_{2}'.format('vis', sector, x)
     thesaver.saveall(url, savelocation, mutator)
 
-def getbatchsaver(interval, start, end):
+def savegoesprojsci2(savelocation, start, end, interval=timedelta(hours=1), older=True):
+    thesaver = getbatchsaver(interval, start, end, ext='jpg')
+    url = "http://goes.gsfc.nasa.gov/goescolor/goeseast/hurricane2/color_med/"
+    if older:
+        url += "older_images/"
+    mutator = lambda x: '{0}_{1}'.format('sat', x)
+    thesaver.saveall(url, savelocation, mutator)
+
+def getbatchsaver(interval, start, end, ext='tif'):
     timeconfig = timing.TimeConfig(interval, start, end)
     removelatest = lambda file: 'latest' not in file
-    return batch.BatchSaver(exts=['tif'], filter=removelatest, timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
+    return batch.BatchSaver(exts=[ext], filter=removelatest, timeextractor=goesgsfc_timeextr, timeconfig=timeconfig)
 
 def goesgsfc_timeextr(file):
     regex = '\d{10}'

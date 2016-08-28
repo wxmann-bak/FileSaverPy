@@ -37,6 +37,6 @@ class FilesTests(unittest.TestCase):
 
     def test_directory_target_copyfrom(self):
         targ = files.DirectoryTarget("C:/Me")
-        filetarg = targ.filename_from(
+        filetarg = targ.copy_filename_from(
             files.URLSource("http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"))
         self.assertEqual(str(filetarg), "C:/Me/20160511_085022_gray.png")

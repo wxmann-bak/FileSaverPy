@@ -29,6 +29,6 @@ class _SaveJob(threading.Thread):
 
     def run(self):
         while True:
-            targloc = self.dirtarg.timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator)
+            targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator)
             common.dosave(self.urlsrc.url, str(targloc))
             time.sleep(self.interval.seconds)

@@ -77,13 +77,13 @@ class DirectoryTarget(object):
     def __init__(self, folder):
         self.folder = folder
 
-    def timestamped_file(self, base, ext, mutator=None):
+    def get_timestamped_file(self, base, ext, mutator=None):
         thetime = dt.utcnow()
         timestampedfile = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
         file = timestampedfile if mutator is None else mutator(timestampedfile)
         return FileTarget(self.folder, file, ext, timestamp=thetime)
 
-    def filename_from(self, urlsrc, mutator=None):
+    def copy_filename_from(self, urlsrc, mutator=None):
         thetime = dt.utcnow() if urlsrc.timestamp is None else urlsrc.timestamp
         file = urlsrc.filebase if mutator is None else mutator(urlsrc.filebase)
         return FileTarget(self.folder, file=file, ext=urlsrc.ext, timestamp=thetime)
