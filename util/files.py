@@ -1,4 +1,6 @@
 import re
+from savers.common import SaveError
+from util import http
 
 __author__ = 'tangz'
 
@@ -38,6 +40,7 @@ class URLSource(object):
         self.filebase = None
         self.timestamp = None
         self.ext = None
+        self.host = None
         self.extractall(timeextractor)
 
     def extractall(self, timeextractor):
@@ -62,6 +65,38 @@ class URLSource(object):
         return self.url
 
 
+class DynamicURLSource(URLSource):
+    def __init__(self, url, timeextractor=None):
+        self.host = None
+        self.requesturl = url
+        URLSource.__init__(self, url, timeextractor)
+
+    def extractall(self, timeextractor):
+        self._extract_host()
+        self.refresh()
+        URLSource.extractall(self, timeextractor)
+
+    def _extract_host(self):
+        urlparts = re.split('/', self.url)
+        if len(urlparts) > 2 and 'http' in urlparts[0]:
+            self.host = urlparts[2]
+        else:
+            self.host = urlparts[0]
+
+    def refresh(self):
+        htmlwithimg = http.gethtmlforpage(self.requesturl)
+        parser = http.ImagesHTMLParser()
+        parser.feed(htmlwithimg)
+        allimages = parser.foundimages
+
+        if not allimages:
+            raise SaveError("Cannot find images for: " + self.requesturl)
+        elif len(allimages) == 1:
+            self.url = 'http://' + withslash(self.host) + allimages[0]
+        else:
+            raise SaveError("Found more than one image for: " + self.requesturl)
+
+
 class FileTarget(object):
     def __init__(self, folder, file, ext, timestamp):
         self.folder = folder
@@ -79,9 +114,9 @@ class DirectoryTarget(object):
 
     def get_timestamped_file(self, base, ext, mutator=None):
         thetime = dt.utcnow()
-        timestampedfile = buildfilename(base=base, appendval=gettimestamp(datetime=thetime))
-        file = timestampedfile if mutator is None else mutator(timestampedfile)
-        return FileTarget(self.folder, file, ext, timestamp=thetime)
+        filebase = base if mutator is None else mutator(base)
+        timestampedfile = buildfilename(base=filebase, appendval=gettimestamp(datetime=thetime))
+        return FileTarget(self.folder, timestampedfile, ext, timestamp=thetime)
 
     def copy_filename_from(self, urlsrc, mutator=None):
         thetime = dt.utcnow() if urlsrc.timestamp is None else urlsrc.timestamp
