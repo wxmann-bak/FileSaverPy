@@ -39,11 +39,6 @@ def withslash(folder, fwd=True):
         return folder + ('/' if fwd else '\\')
 
 
-class InvalidResourceError(Exception):
-    pass
-
-# TODO: test these
-
 def isfile(url):
     urlcomponents = urllib.parse.urlparse(url)
     basepath = os.path.basename(urlcomponents.path)
@@ -59,8 +54,8 @@ def geturl(scheme, host, path):
     return urllib.parse.urljoin(scheme + "://" + withslash(host), path)
 
 
-def get_file_url(base, file):
-    return urllib.parse.urljoin(withslash(base), file)
+def get_file_url(parentpath, file):
+    return urllib.parse.urljoin(withslash(parentpath), file)
 
 
 class URLSource(object):
@@ -144,3 +139,7 @@ class DirectoryTarget(object):
         thetime = dt.utcnow() if urlsrc.timestamp is None else urlsrc.timestamp
         file = urlsrc.filebase if mutator is None else mutator(urlsrc.filebase)
         return FileTarget(self.folder, file=file, ext=urlsrc.ext, timestamp=thetime)
+
+
+class InvalidResourceError(Exception):
+    pass

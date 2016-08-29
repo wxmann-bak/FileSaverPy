@@ -1,18 +1,13 @@
 from datetime import datetime
-import logging
 import re
 from savers import batch
 
-from util import files, timing
+from util import timing
 
 
 __author__ = 'tangz'
 
 def savefromral(station, savelocation, start, end, interval=None):
-    filename = '{0}{1}_radarSave_{2}.log'.format(files.withslash(savelocation), station,
-                                                 datetime.utcnow().strftime('%Y%m%d_%H%M'))
-    logging.basicConfig(filename=filename, level=logging.INFO)
-
     thesaver = getbatchsaver(interval, start, end)
     url = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/" + station
     mutator = lambda x: station + '_' + x

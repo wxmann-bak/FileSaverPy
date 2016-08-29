@@ -5,6 +5,7 @@ from util import files
 
 __author__ = 'tangz'
 
+
 class FilesTests(unittest.TestCase):
 
     def test_should_get_filename(self):
@@ -48,3 +49,28 @@ class FilesTests(unittest.TestCase):
         filetarg = targ.copy_filename_from(
             files.URLSource("http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"))
         self.assertEqual(str(filetarg), os.path.join(targ.folder, "20160511_085022_gray.png"))
+
+    def test_should_confirm_is_url(self):
+        correcturl = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"
+        notcorrecturl = "weather.rap.ucar.edu"
+        self.assertTrue(files.isurl(correcturl))
+        self.assertFalse(files.isurl(notcorrecturl))
+
+    def test_should_confirm_is_file(self):
+        correctfile = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"
+        notcorrectfile = "weather.rap.ucar.edu/radar"
+        self.assertTrue(files.isfile(correctfile))
+        self.assertFalse(files.isfile(notcorrectfile))
+
+    def test_should_get_url_from_scheme_host_path(self):
+        scheme = 'http'
+        host = 'weather.rap.ucar.edu'
+        path = '/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png'
+        expected_url = 'http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png'
+        self.assertEqual(files.geturl(scheme, host, path), expected_url)
+
+    def test_should_get_file_url_from_path_and_file(self):
+        parentpath = 'http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH'
+        file = '20160511_085022_gray.png'
+        expected_url = 'http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png'
+        self.assertEqual(files.get_file_url(parentpath, file), expected_url)
