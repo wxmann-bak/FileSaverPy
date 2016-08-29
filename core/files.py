@@ -1,7 +1,7 @@
 import os
 import urllib
 from savers.common import SaveError
-from core import http
+from core import web
 
 __author__ = 'tangz'
 
@@ -99,8 +99,8 @@ class DynamicURLSource(URLSource):
         self.host = urlcomponents.netloc
 
     def refresh(self):
-        htmlwithimg = http.gethtmlforpage(self.requesturl)
-        parser = http.ImagesHTMLParser()
+        htmlwithimg = web.gethtmlforpage(self.requesturl)
+        parser = web.ImagesHTMLParser()
         parser.feed(htmlwithimg)
         allimages = parser.foundimages
 

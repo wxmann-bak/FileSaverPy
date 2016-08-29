@@ -1,5 +1,5 @@
 from core import files
-from core import http, timing
+from core import web, timing
 from savers import common
 
 __author__ = 'tangz'
@@ -33,8 +33,8 @@ class BatchSaver(object):
             return False
 
     def saveall(self, onlinedir, saveloc, mutator=None):
-        allhtml = http.gethtmlforpage(onlinedir)
-        parser = http.LinksHTMLParser()
+        allhtml = web.gethtmlforpage(onlinedir)
+        parser = web.LinksHTMLParser()
         parser.feed(allhtml)
         alllinks = parser.foundlinks
         urls = [files.get_file_url(onlinedir, link) for link in alllinks if files.isfile(link)]
