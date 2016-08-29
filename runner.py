@@ -32,9 +32,21 @@ def save_ssd_periodic():
     rgb_lester = "http://www.ssd.noaa.gov/PS/TROP/floaters/13E/imagery/rgb-animated.gif"
     saveloc_lester = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Lester"
 
+    madeline = 'Madeline-'
+    avn_madeline = "http://www.ssd.noaa.gov/PS/TROP/floaters/14E/imagery/avn-animated.gif"
+    rgb_madeline = "http://www.ssd.noaa.gov/PS/TROP/floaters/14E/imagery/rgb-animated.gif"
+    saveloc_madeline = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Lester"
+
+    gaston = 'Gaston-'
+    avn_gaston = "http://www.ssd.noaa.gov/PS/TROP/floaters/07L/imagery/avn-animated.gif"
+    rgb_gaston = "http://www.ssd.noaa.gov/PS/TROP/floaters/07L/imagery/rgb-animated.gif"
+    saveloc_gaston = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Gaston"
+
     interval = timedelta(hours=5)
-    ssd.save_ssd(lionrock, [avn_lionrock, rgb_lionrock], saveloc_lionrock, interval)
-    ssd.save_ssd(lester, [avn_lester, rgb_lester], saveloc_lester, interval)
+    # ssd.save_ssd(lionrock, [avn_lionrock, rgb_lionrock], saveloc_lionrock, interval)
+    # ssd.save_ssd(lester, [avn_lester, rgb_lester], saveloc_lester, interval)
+    ssd.save_ssd(madeline, [avn_madeline, rgb_madeline], saveloc_madeline, interval)
+    ssd.save_ssd(gaston, [avn_gaston, rgb_gaston], saveloc_gaston, interval)
 
 
 def save_nasaghcc_periodic():
@@ -45,7 +57,7 @@ def save_nasaghcc_periodic():
     zoom = nasaghcc.Zoom.MEDIUM
     setting = nasaghcc.savesetting(sector, lat, long, sattype, zoom)
 
-    nasaghcc.savenasaghcc1([setting], "C:/Users/tangz/Pictures/2016_WX/Use_For_Script_testing", interval=timedelta(seconds=30))
+    nasaghcc.savenasaghcc1([setting], "C:/Users/tangz/Pictures/2016_WX/Use_For_Script_testing", save_period=timedelta(minutes=5))
 
 
 if __name__ == '__main__':

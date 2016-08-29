@@ -1,7 +1,7 @@
 import threading
 import time
 from savers import common
-from core import files
+from core import files, timing
 
 __author__ = 'tangz'
 
@@ -10,15 +10,15 @@ class PeriodicSaver(object):
     def __init__(self):
         self.jobs = []
 
-    def addjob(self, onlineurl, saveloc, interval, mutator=None, timeextractor=None):
+    def addjob(self, onlineurl, saveloc, save_period, mutator=None, timeextractor=None, img_dt=None):
         dirtarg = files.DirectoryTarget(saveloc)
         urlsrc = files.URLSource(onlineurl, timeextractor=timeextractor)
-        self.jobs.append(SaveJob(interval, urlsrc, dirtarg, mutator))
+        self.jobs.append(SaveJob(save_period, urlsrc, dirtarg, mutator, img_dt))
 
-    def adddynamicjob(self, onlineurl, saveloc, interval, mutator=None, timeextractor=None):
+    def adddynamicjob(self, onlineurl, saveloc, save_period, mutator=None, timeextractor=None, img_dt=None):
         dirtarg = files.DirectoryTarget(saveloc)
         urlsrc = files.DynamicURLSource(onlineurl, timeextractor=timeextractor)
-        self.jobs.append(DynamicSaveJob(interval, urlsrc, dirtarg, mutator))
+        self.jobs.append(DynamicSaveJob(save_period, urlsrc, dirtarg, mutator, img_dt))
 
     def executesaves(self):
         for job in self.jobs:
@@ -26,22 +26,26 @@ class PeriodicSaver(object):
 
 
 class SaveJob(threading.Thread):
-    def __init__(self, interval, urlsrc, dirtarg, mutator):
+    def __init__(self, save_period, urlsrc, dirtarg, mutator, img_dt):
         threading.Thread.__init__(self)
         self.urlsrc = urlsrc
         self.dirtarg = dirtarg
         self.mutator = mutator
-        self.interval = interval
+        self.save_period = save_period
+        self.img_dt = img_dt
+        self.hist = []
 
     def run_save(self):
-        targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator,
-                                                    self.urlsrc.timestamp)
-        common.dosave(self.urlsrc.url, str(targloc))
+        if timing.passestime(self.urlsrc, timing.TimeConfig(interval=self.img_dt), self.hist):
+            targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator,
+                                                        self.urlsrc.timestamp)
+            common.dosave(self.urlsrc.url, str(targloc))
+            self.hist.append(targloc)
 
     def run(self):
         while True:
             self.run_save()
-            time.sleep(self.interval.seconds)
+            time.sleep(self.save_period.seconds)
 
 
 class DynamicSaveJob(SaveJob):

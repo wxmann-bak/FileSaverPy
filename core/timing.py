@@ -2,6 +2,7 @@ __author__ = 'tangz'
 
 
 class TimeConfig(object):
+    # interval < 0 means that images must not have the same timing
     def __init__(self, interval, start=None, end=None):
         self.interval = interval
         if start and end and start > end:
@@ -25,6 +26,8 @@ def passestime(urlsrc, timeconfig, hist):
 
     if not hist:
         intervalpasses = True
+    elif urlsrc.timestamp in [hist_save.timestamp for hist_save in hist]:
+        intervalpasses = False
     elif timeconfig.interval:
         dt = urlsrc.timestamp - hist[-1].timestamp
         intervalpasses = dt >= timeconfig.interval

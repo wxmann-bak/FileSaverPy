@@ -54,15 +54,16 @@ def savesetting(sector, lat, long, sattype, zoom,
     return queryparams
 
 
-def savenasaghcc1(savesettings, saveloc, interval):
+def savenasaghcc1(savesettings, saveloc, save_period, img_dt=None):
+    thesaver = periodic.PeriodicSaver()
     for setting in savesettings:
         baseurl = 'http://weather.msfc.nasa.gov/cgi-bin/get-goes?'
-        queryparamspart = '&'.join("{0}={1}".format(key, re.sub(r"\s+", "%20", str(setting[key]))) for key, val in setting.items())
+        queryparamspart = '&'.join("{0}={1}".format(key, re.sub(r"\s+", "%20", str(setting[key]))) for key, val
+                                   in setting.items())
         completeurl = baseurl + queryparamspart
 
-        thesaver = periodic.PeriodicSaver()
         mutator = lambda x: setting['info'] + "_ghcc"
-        thesaver.adddynamicjob(completeurl, saveloc, interval, mutator, ghcc_timeextractor)
+        thesaver.adddynamicjob(completeurl, saveloc, save_period, mutator, ghcc_timeextractor, img_dt)
     thesaver.executesaves()
 
 
