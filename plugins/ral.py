@@ -2,10 +2,10 @@ from datetime import datetime
 import re
 from savers import batch
 
-from util import timing
-
+from core import timing
 
 __author__ = 'tangz'
+
 
 def savefromral(station, savelocation, start, end, interval=None):
     thesaver = getbatchsaver(interval, start, end)
@@ -13,10 +13,12 @@ def savefromral(station, savelocation, start, end, interval=None):
     mutator = lambda x: station + '_' + x
     thesaver.saveall(url, savelocation, mutator)
 
+
 def getbatchsaver(interval, start, end, bg='black'):
     timeconfig = timing.TimeConfig(interval, start, end)
     return batch.BatchSaver(exts=['png'], filter=lambda x: bg in x,
                             timeextractor=ral_timeextractor, timeconfig=timeconfig)
+
 
 def ral_timeextractor(file):
     regex = "\d{8}_\d{6}"

@@ -1,10 +1,10 @@
 import os
 import urllib.request
 
-from util.logs import logger
-
+from core.logs import logger
 
 __author__ = 'tangz'
+
 
 def dosave(srcfile, destloc):
     if os.path.isfile(destloc):
@@ -15,5 +15,3 @@ def dosave(srcfile, destloc):
 
 class SaveError(Exception):
     pass
-
-

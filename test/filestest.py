@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from util import files
+from core import files
 
 __author__ = 'tangz'
 

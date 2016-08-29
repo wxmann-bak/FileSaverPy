@@ -1,7 +1,7 @@
 import os
 import urllib
 from savers.common import SaveError
-from util import http
+from core import http
 
 __author__ = 'tangz'
 

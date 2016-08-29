@@ -6,18 +6,18 @@ from plugins import ral, goesprojsci, ssd, nasaghcc
 __author__ = 'tangz'
 
 def save_ral_radar():
-    station = "KLCH"
+    station = "KDTX"
     saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\Use_For_Script_testing'
-    start = datetime(2016, 8, 28, 6, 0)
-    end = datetime(2016, 8, 28, 6, 30)
-    ral.savefromral(station, saveloc, start=start, end=end, interval=timedelta(minutes=7))
+    start = datetime(2016, 8, 24, 22, 0)
+    end = datetime(2016, 8, 25, 1, 30)
+    ral.savefromral(station, saveloc, start=start, end=end)
 
 
 def save_goesproj_vis():
-    sector = 'chesapeake'
-    saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\160730_MDFloods'
-    start = datetime(2016, 7, 30, 16, 0)
-    end = datetime(2016, 7, 31, 2, 0)
+    sector = 'great_lakes'
+    saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\160824_IN-OH-ON-MO-KS'
+    start = datetime(2016, 8, 24, 15, 0)
+    end = datetime(2016, 8, 25, 1, 0)
     goesprojsci.savegoesprojsci(sector, saveloc, start, end)
 
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # start = datetime(2016, 8, 9, 12, 1)
     # end = datetime(2016, 8, 15, 0, 1)
     # goesprojsci.savegoesprojsci2(saveloc, start, end)
-    # save_ral_radar()
-    save_ssd_periodic()
+    save_ral_radar()
+    # save_ssd_periodic()
     # save_goesproj_vis()
     # save_nasaghcc_periodic()
