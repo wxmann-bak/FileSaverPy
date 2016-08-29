@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timedelta
 from enum import Enum
 import re
 from savers import periodic
@@ -61,5 +62,25 @@ def savenasaghcc1(savesettings, saveloc, interval):
 
         thesaver = periodic.PeriodicSaver()
         mutator = lambda x: setting['info'] + "_ghcc"
-        thesaver.adddynamicjob(completeurl, saveloc, interval, mutator)
+        thesaver.adddynamicjob(completeurl, saveloc, interval, mutator, ghcc_timeextractor)
     thesaver.executesaves()
+
+
+def ghcc_timeextractor(url):
+    regex = 'GOES(\d{2})(\d{2})(\d{4})'
+    found = re.search(regex, url)
+    if not found:
+        raise url.InvalidResourceError("Cannot find date-time for file: {0}".format(url))
+
+    found_hour = found.group(1)
+    found_min = found.group(2)
+    found_year = found.group(3)
+
+    current_time = dt.utcnow()
+    # overflow condition: account for lag time between current time and NASA GHCC latest satellite time
+    if current_time.hour == 0 and found_hour == 23:
+        current_time -= timedelta(hours=1)
+    current_day = current_time.day
+    current_month = current_time.month
+
+    return dt(year=int(found_year), month=current_month, day=current_day, hour=int(found_hour), minute=int(found_min))

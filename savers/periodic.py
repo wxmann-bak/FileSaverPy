@@ -10,14 +10,14 @@ class PeriodicSaver(object):
     def __init__(self):
         self.jobs = []
 
-    def addjob(self, onlineurl, saveloc, interval, mutator=None):
+    def addjob(self, onlineurl, saveloc, interval, mutator=None, timeextractor=None):
         dirtarg = files.DirectoryTarget(saveloc)
-        urlsrc = files.URLSource(onlineurl)
+        urlsrc = files.URLSource(onlineurl, timeextractor=timeextractor)
         self.jobs.append(SaveJob(interval, urlsrc, dirtarg, mutator))
 
-    def adddynamicjob(self, onlineurl, saveloc, interval, mutator=None):
+    def adddynamicjob(self, onlineurl, saveloc, interval, mutator=None, timeextractor=None):
         dirtarg = files.DirectoryTarget(saveloc)
-        urlsrc = files.DynamicURLSource(onlineurl)
+        urlsrc = files.DynamicURLSource(onlineurl, timeextractor=timeextractor)
         self.jobs.append(DynamicSaveJob(interval, urlsrc, dirtarg, mutator))
 
     def executesaves(self):
@@ -34,7 +34,8 @@ class SaveJob(threading.Thread):
         self.interval = interval
 
     def run_save(self):
-        targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator)
+        targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator,
+                                                    self.urlsrc.timestamp)
         common.dosave(self.urlsrc.url, str(targloc))
 
     def run(self):

@@ -90,8 +90,6 @@ class DynamicURLSource(URLSource):
         self.requesturl = url
         self._saved_timeextractor = timeextractor
         self._extract_protocol_host()
-        self.refresh()
-        URLSource.__init__(self, url, timeextractor)
 
     def _extract_protocol_host(self):
         urlcomponents = urllib.parse.urlparse(self.requesturl)
@@ -129,8 +127,8 @@ class DirectoryTarget(object):
     def __init__(self, folder):
         self.folder = folder
 
-    def get_timestamped_file(self, base, ext, mutator=None):
-        thetime = dt.utcnow()
+    def get_timestamped_file(self, base, ext, mutator=None, explicit_time=None):
+        thetime = dt.utcnow() if explicit_time is None else explicit_time
         filebase = base if mutator is None else mutator(base)
         timestampedfile = buildfilename(base=filebase, appendval=gettimestamp(datetime=thetime))
         return FileTarget(self.folder, timestampedfile, ext, timestamp=thetime)
