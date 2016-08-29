@@ -1,4 +1,5 @@
-import re
+import os
+import urllib
 from savers.common import SaveError
 from util import http
 
@@ -6,12 +7,15 @@ __author__ = 'tangz'
 
 from datetime import datetime as dt
 
+
 DATEFORMAT = '%Y%m%d_%H%M%S'
+
 
 def gettimestamp(datetime=None, frmt=DATEFORMAT):
     if datetime is None:
         datetime = dt.utcnow()
     return datetime.strftime(frmt)
+
 
 def buildfilename(base=None, prependval=None, appendval=None, joiner='_'):
     parts = []
@@ -23,15 +27,40 @@ def buildfilename(base=None, prependval=None, appendval=None, joiner='_'):
         parts.append(appendval)
     return None if not parts else joiner.join(parts)
 
+
 def withdotsep(extstr):
     return extstr if extstr.startswith('.') else '.' + extstr
 
-def withslash(folder):
-    return folder if folder.endswith('/') or folder.endswith('\\') else folder + '/'
+
+def withslash(folder, fwd=True):
+    if folder.endswith('/') or folder.endswith('\\'):
+        return folder
+    else:
+        return folder + ('/' if fwd else '\\')
 
 
 class InvalidResourceError(Exception):
     pass
+
+# TODO: test these
+
+def isfile(url):
+    urlcomponents = urllib.parse.urlparse(url)
+    basepath = os.path.basename(urlcomponents.path)
+    splitbasepath = os.path.splitext(basepath)
+    return bool(splitbasepath[1])
+
+
+def isurl(potential_url):
+    return bool(urllib.parse.urlparse(potential_url).scheme)
+
+
+def geturl(scheme, host, path):
+    return urllib.parse.urljoin(scheme + "://" + withslash(host), path)
+
+
+def get_file_url(base, file):
+    return urllib.parse.urljoin(withslash(base), file)
 
 
 class URLSource(object):
@@ -41,24 +70,20 @@ class URLSource(object):
         self.timestamp = None
         self.ext = None
         self.host = None
+        self.scheme = None
         self.extractall(timeextractor)
 
     def extractall(self, timeextractor):
-        def checkparts(parts):
-            if not parts:
-                raise InvalidResourceError("Cannot parse resource name from: " + self.url)
-        urlparts = re.split('/', self.url)
-        checkparts(urlparts)
-        filename = urlparts[-1]
-        filenameparts = re.split('\.', filename)
-        checkparts(filenameparts)
-        filepartslen = len(filenameparts)
-        if filepartslen > 1:
-            self.filebase = '.'.join(filenameparts[:filepartslen-1])
-            self.ext = filenameparts[-1]
-        else:
-            self.filebase = filename
-            self.ext = None
+        urlcomponents = urllib.parse.urlparse(self.url)
+        self.scheme = urlcomponents.scheme
+        self.host = urlcomponents.netloc
+        basepath = os.path.basename(urlcomponents.path)
+
+        if isfile(self.url):
+            splitbasepath = os.path.splitext(basepath)
+            self.filebase = splitbasepath[0]
+            self.ext = splitbasepath[1][1:]
+
         self.timestamp = dt.utcnow() if timeextractor is None else timeextractor(self.url)
 
     def __str__(self):
@@ -67,21 +92,16 @@ class URLSource(object):
 
 class DynamicURLSource(URLSource):
     def __init__(self, url, timeextractor=None):
-        self.host = None
         self.requesturl = url
+        self._saved_timeextractor = timeextractor
+        self._extract_protocol_host()
+        self.refresh()
         URLSource.__init__(self, url, timeextractor)
 
-    def extractall(self, timeextractor):
-        self._extract_host()
-        self.refresh()
-        URLSource.extractall(self, timeextractor)
-
-    def _extract_host(self):
-        urlparts = re.split('/', self.url)
-        if len(urlparts) > 2 and 'http' in urlparts[0]:
-            self.host = urlparts[2]
-        else:
-            self.host = urlparts[0]
+    def _extract_protocol_host(self):
+        urlcomponents = urllib.parse.urlparse(self.requesturl)
+        self.scheme = urlcomponents.scheme
+        self.host = urlcomponents.netloc
 
     def refresh(self):
         htmlwithimg = http.gethtmlforpage(self.requesturl)
@@ -92,7 +112,9 @@ class DynamicURLSource(URLSource):
         if not allimages:
             raise SaveError("Cannot find images for: " + self.requesturl)
         elif len(allimages) == 1:
-            self.url = 'http://' + withslash(self.host) + allimages[0]
+            img = allimages[0]
+            self.url = img if isurl(img) else geturl(self.scheme, self.host, img)
+            self.extractall(timeextractor=self._saved_timeextractor)
         else:
             raise SaveError("Found more than one image for: " + self.requesturl)
 
@@ -105,7 +127,7 @@ class FileTarget(object):
         self.timestamp = timestamp
 
     def __str__(self):
-        return withslash(self.folder) + self.file + withdotsep(self.ext)
+        return os.path.join(self.folder, self.file + withdotsep(self.ext))
 
 
 class DirectoryTarget(object):

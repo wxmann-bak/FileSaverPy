@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+
 from plugins import ral, goesprojsci, ssd, nasaghcc
+
 
 __author__ = 'tangz'
 
@@ -56,13 +58,12 @@ def save_nasaghcc_periodic():
     nasaghcc.savenasaghcc1([setting], "C:/Users/tangz/Pictures/2016_WX/Hurricane_Gaston", interval=timedelta(minutes=2))
 
 
-
 if __name__ == '__main__':
     # saveloc = 'C:\\Users\\tangz\\Pictures\\2016_WX\\160811-15_LAFloods'
     # start = datetime(2016, 8, 9, 12, 1)
     # end = datetime(2016, 8, 15, 0, 1)
     # goesprojsci.savegoesprojsci2(saveloc, start, end)
-    save_ral_radar()
-    # save_ssd_periodic()
+    # save_ral_radar()
+    save_ssd_periodic()
     # save_goesproj_vis()
     # save_nasaghcc_periodic()

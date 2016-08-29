@@ -1,5 +1,3 @@
-import re
-
 from util import files
 from util import http, timing
 from savers import common
@@ -39,7 +37,7 @@ class BatchSaver(object):
         parser = http.LinksHTMLParser()
         parser.feed(allhtml)
         alllinks = parser.foundlinks
-        urls = [files.withslash(onlinedir) + link for link in alllinks if re.search("\.\w{3}$", link)]
+        urls = [files.get_file_url(onlinedir, link) for link in alllinks if files.isfile(link)]
 
         dirtarg = files.DirectoryTarget(saveloc)
         for url in urls:

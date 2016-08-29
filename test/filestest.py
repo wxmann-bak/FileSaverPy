@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from util import files
@@ -8,13 +9,12 @@ class FilesTests(unittest.TestCase):
 
     def test_should_get_filename(self):
         timestamp = files.gettimestamp()
-        fileext = '.jpg'
         filename = files.buildfilename(base='OAX', appendval=timestamp)
         self.assertEqual(filename, 'OAX_' + timestamp)
 
     def test_should_add_slash(self):
-        testdirs = ['C:/Me', 'C:\\Me', 'C:/Me/','C:/Me\\']
-        results = ['C:/Me/', 'C:\\Me/', 'C:/Me/', 'C:/Me\\']
+        testdirs = ['C:/Me', 'http://Me', 'C:/Me/','http://Me/']
+        results = ['C:/Me/', 'http://Me/', 'C:/Me/', 'http://Me/']
         for i in range(len(testdirs)):
             self.assertEqual(files.withslash(testdirs[i]), results[i])
 
@@ -30,13 +30,21 @@ class FilesTests(unittest.TestCase):
         self.assertEqual(src.url, url)
         self.assertEqual(src.filebase, '20160511_085022_gray')
         self.assertEqual(src.ext, 'png')
+        self.assertEqual(src.host, 'weather.rap.ucar.edu')
+        self.assertEqual(src.scheme, 'http')
 
     def test_file_target(self):
+        dir = "C:\Me"
         targ = files.FileTarget("C:\Me", "abc", "jpg", None)
-        self.assertEqual(str(targ), "C:\Me/abc.jpg")
+        self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
+
+    def test_file_target_with_dot_in_ext(self):
+        dir = "C:\Me"
+        targ = files.FileTarget("C:\Me", "abc", ".jpg", None)
+        self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
 
     def test_directory_target_copyfrom(self):
         targ = files.DirectoryTarget("C:/Me")
         filetarg = targ.copy_filename_from(
             files.URLSource("http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"))
-        self.assertEqual(str(filetarg), "C:/Me/20160511_085022_gray.png")
+        self.assertEqual(str(filetarg), os.path.join(targ.folder, "20160511_085022_gray.png"))
