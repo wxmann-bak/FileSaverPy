@@ -37,8 +37,8 @@ class SaveJob(threading.Thread):
 
     def run_save(self):
         if timing.passestime(self.urlsrc, timing.TimeConfig(interval=self.img_dt), self.hist):
-            targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext, self.mutator,
-                                                        self.urlsrc.timestamp)
+            targloc = self.dirtarg.get_timestamped_file(self.urlsrc.filebase, self.urlsrc.ext,
+                                                        self.urlsrc.timestamp, self.mutator)
             common.dosave(self.urlsrc.url, str(targloc))
             self.hist.append(targloc)
 

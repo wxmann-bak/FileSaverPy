@@ -79,7 +79,7 @@ class URLSource(object):
             self.filebase = splitbasepath[0]
             self.ext = splitbasepath[1][1:]
 
-        self.timestamp = dt.utcnow() if timeextractor is None else timeextractor(self.url)
+        self.timestamp = None if timeextractor is None else timeextractor(self.url)
 
     def __str__(self):
         return self.url
@@ -127,16 +127,15 @@ class DirectoryTarget(object):
     def __init__(self, folder):
         self.folder = folder
 
-    def get_timestamped_file(self, base, ext, mutator=None, explicit_time=None):
-        thetime = dt.utcnow() if explicit_time is None else explicit_time
-        filebase = base if mutator is None else mutator(base)
-        timestampedfile = buildfilename(base=filebase, appendval=gettimestamp(datetime=thetime))
-        return FileTarget(self.folder, timestampedfile, ext, timestamp=thetime)
-
     def copy_filename_from(self, urlsrc, mutator=None):
         thetime = dt.utcnow() if urlsrc.timestamp is None else urlsrc.timestamp
         file = urlsrc.filebase if mutator is None else mutator(urlsrc.filebase)
         return FileTarget(self.folder, file=file, ext=urlsrc.ext, timestamp=thetime)
+
+    def get_timestamped_file(self, base, ext, file_time=None, mutator=None):
+        filebase = base if mutator is None else mutator(base)
+        timestampedfile = buildfilename(base=filebase, appendval=gettimestamp(datetime=file_time))
+        return FileTarget(self.folder, timestampedfile, ext, timestamp=file_time)
 
 
 class InvalidResourceError(Exception):

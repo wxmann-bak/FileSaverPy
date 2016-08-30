@@ -12,7 +12,7 @@ class TimeConfig(object):
 
 
 def passestime(urlsrc, timeconfig, hist):
-    if not timeconfig:
+    if not timeconfig or not urlsrc.timestamp:
         return True
 
     if timeconfig.start and timeconfig.end:
