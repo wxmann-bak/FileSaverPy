@@ -70,20 +70,17 @@ def savenasaghcc1(savesettings, saveloc, save_period, img_dt=None):
 
 
 def ghcc_timeextractor(url):
-    regex = 'GOES(\d{2})(\d{2})(\d{4})'
+    regex = 'GOES(\d{2})(\d{2})(\d{4})(\d{1,3})'
     found = re.search(regex, url)
     if not found:
         raise url.InvalidResourceError("Cannot find date-time for file: {0}".format(url))
 
-    found_hour = found.group(1)
-    found_min = found.group(2)
-    found_year = found.group(3)
+    found_hour = int(found.group(1))
+    found_min = int(found.group(2))
+    found_year = int(found.group(3))
+    found_dayofyr = int(found.group(4))
 
-    current_time = dt.utcnow()
-    # overflow condition: account for lag time between current time and NASA GHCC latest satellite time
-    if current_time.hour == 0 and found_hour == 23:
-        current_time -= timedelta(hours=1)
-    current_day = current_time.day
-    current_month = current_time.month
+    day_before_year = dt(year=found_year - 1, month=12, day=31)
+    current_day = day_before_year + timedelta(days=found_dayofyr)
 
-    return dt(year=int(found_year), month=current_month, day=current_day, hour=int(found_hour), minute=int(found_min))
+    return dt(year=found_year, month=current_day.month, day=current_day.day, hour=found_hour, minute=found_min)
