@@ -50,14 +50,19 @@ def save_ssd_periodic():
 
 
 def save_nasaghcc_periodic():
-    sector = nasaghcc.Sector.ATLANTIC_HURRICANE
-    lat = 30.06
-    long = -54.89
-    sattype = nasaghcc.Satellite.INFRARED
-    zoom = nasaghcc.Zoom.MEDIUM
-    setting = nasaghcc.savesetting(sector, lat, long, sattype, zoom)
+    sector = nasaghcc.Sector.EASTERN_PACIFIC
+    # lester
+    #lat = 18.44
+    #long = -130.42
 
-    nasaghcc.savenasaghcc1([setting], "C:/Users/tangz/Pictures/2016_WX/Use_For_Script_testing", save_period=timedelta(minutes=5))
+    # madeline
+    lat = 18.88
+    long = -145.45
+    sattype = nasaghcc.Satellite.VISIBLE
+    zoom = nasaghcc.Zoom.HIGH
+    settings = [nasaghcc.savesetting(sector, lat, long, sattype, zoom, past=n) for n in range(28)]
+
+    nasaghcc.savenasaghcc1(settings, "/Users/jitang/Documents/Lester_Script", save_period=timedelta(hours=10))
 
 
 if __name__ == '__main__':

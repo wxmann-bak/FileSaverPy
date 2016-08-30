@@ -5,12 +5,13 @@ from savers import periodic
 
 __author__ = 'tangz'
 
+
 class Sector(Enum):
     EASTERN_NORTH_AMERICA = "GOES-E CONUS"
     GOES_E_FULL_DISK = "GOES-E FULL"
     ATLANTIC_HURRICANE = "GOES-E HURRICANE"
     NORTHERN_HEMISPHERE = "GOES-E NHE"
-    EASTERN_PACIFIC = "GOES-10"
+    EASTERN_PACIFIC = "GOES-W PACUS"
 
 
 class Zoom(Enum):
@@ -44,7 +45,8 @@ def savesetting(sector, lat, long, sattype, zoom,
     queryparams['zoom'] = zoom.value
     queryparams['info'] = sattype.value
     queryparams['past'] = past
-    queryparams['palette'] = palette
+    if sattype != Satellite.VISIBLE:
+        queryparams['palette'] = palette
     queryparams['colorbar'] = colorbar
     queryparams['mapcolor'] = mapcolor
     queryparams['quality'] = quality
