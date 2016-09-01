@@ -8,9 +8,10 @@ __author__ = 'tangz'
 
 def dosave(srcfile, destloc):
     if os.path.isfile(destloc):
-        raise SaveError("File: {0} already exists, cannot save it".format(destloc))
-    logger.info("Saving file from {0} to {1}".format(srcfile, destloc))
-    urllib.request.urlretrieve(srcfile, destloc)
+        logger.warn("File: {0} already exists, cannot save it".format(destloc))
+    else:
+        logger.info("Saving file from {0} to {1}".format(srcfile, destloc))
+        urllib.request.urlretrieve(srcfile, destloc)
 
 
 class SaveError(Exception):
