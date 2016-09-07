@@ -9,11 +9,6 @@ __author__ = 'tangz'
 
 class FilesTests(unittest.TestCase):
 
-    def test_should_get_filename(self):
-        timestamp = files.gettimestamp()
-        filename = files.buildfilename(base='OAX', appendval=timestamp)
-        self.assertEqual(filename, 'OAX_' + timestamp)
-
     def test_should_add_slash(self):
         testdirs = ['C:/Me', 'http://Me', 'C:/Me/','http://Me/']
         results = ['C:/Me/', 'http://Me/', 'C:/Me/', 'http://Me/']

@@ -4,17 +4,6 @@ from datetime import datetime
 from core import web
 
 
-# def img_interval_filter(min_interval):
-#     def thefilter(timestamp, hist):
-#         if not hist:
-#             return True
-#         elif timestamp in [hist_save.timestamp for hist_save in hist]:
-#             return False
-#         dt = timestamp - hist[-1].timestamp
-#         return dt >= min_interval
-#     return thefilter
-
-
 def start_end_filter(start=None, end=None):
     def thefilter(timestamp):
         if start and end:

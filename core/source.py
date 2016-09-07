@@ -8,7 +8,7 @@ def singular(urlsrc_func=staticurl, timeextractor=None, timefilter=None,
 
 
 def batch(urlset_func=listingurl, urlsrc_func=staticurl, timeextractor=None, timefilter=None,
-             valid_exts=None, filename_filter=None):
+          valid_exts=None, filename_filter=None):
     indiv_setting = SourceSetting(urlsrc_func, timeextractor, timefilter, valid_exts, filename_filter)
     return BatchSourceSetting(indiv_setting, urlset_func)
 
@@ -17,8 +17,7 @@ def batch(urlset_func=listingurl, urlsrc_func=staticurl, timeextractor=None, tim
 # timefilter: time -> pass/no pass
 # filename_filter: url file base -> pass/no pass
 class SourceSetting(object):
-    def __init__(self, urlsrc_extractor=staticurl, timeextractor=None, timefilter=None,
-                 valid_exts=None, filename_filter=None):
+    def __init__(self, urlsrc_extractor, timeextractor, timefilter, valid_exts, filename_filter):
         self.urlsrc_extractor = urlsrc_extractor
         self.timeextractor = timeextractor
         self.timefilter = timefilter
@@ -89,7 +88,7 @@ class SourceSetting(object):
 
 # filename_builder: file base + timestamp -> new file base
 class BatchSourceSetting(object):
-    def __init__(self, indiv_setting, urlset_extractor=listingurl):
+    def __init__(self, indiv_setting, urlset_extractor):
         self._internal_setting = indiv_setting
         self._urlsrcs = []
         self.urlset_extractor = urlset_extractor
