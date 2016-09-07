@@ -1,8 +1,9 @@
+import os
 from datetime import datetime
 
 import functools
 
-from core.model import FileTarget
+from core.files import withdotsep
 
 
 def copyfilename(mutator=None):
@@ -36,3 +37,14 @@ class TargetSetting(object):
         else:
             file = urlsrc.filebase if self.filename_builder is None else self.filename_builder(urlsrc.filebase, thetime)
         return FileTarget(self.folder, file=file, ext=urlsrc.ext, timestamp=thetime)
+
+
+class FileTarget(object):
+    def __init__(self, folder, file, ext, timestamp):
+        self.folder = folder
+        self.file = file
+        self.ext = ext
+        self.timestamp = timestamp
+
+    def __str__(self):
+        return os.path.join(self.folder, self.file + withdotsep(self.ext))

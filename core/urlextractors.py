@@ -1,11 +1,12 @@
-from core import files, web, model
+import core.source
+from core import files, web
 from core.saver import SaveError
 
 ### Single URL ###
 
 
 def staticurl(url):
-    return model.URLSource(url)
+    return core.source.URLSource(url)
 
 
 def parse_html_response(htmlparser):
@@ -22,7 +23,7 @@ def parse_html_response(htmlparser):
             scheme = files.get_scheme(requesturl)
             host = files.get_host(requesturl)
             url = img if files.isurl(img) else files.geturl(scheme, host, img)
-            return model.URLSource(url)
+            return core.source.URLSource(url)
         else:
             raise SaveError("Found more than one image for: " + requesturl)
     return themapper
