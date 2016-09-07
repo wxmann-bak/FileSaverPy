@@ -32,3 +32,7 @@ class ImagesHTMLParser(HTMLParser):
 
 class HTTPResponseError(Exception):
     pass
+
+
+class InvalidResourceError(Exception):
+    pass

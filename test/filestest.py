@@ -1,6 +1,7 @@
 import os
 import unittest
 
+import core.model
 from core import files
 
 __author__ = 'tangz'
@@ -27,7 +28,7 @@ class FilesTests(unittest.TestCase):
 
     def test_create_url_src(self):
         url = 'http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png'
-        src = files.URLSource(url)
+        src = core.model.URLSource(url)
         self.assertEqual(src.url, url)
         self.assertEqual(src.filebase, '20160511_085022_gray')
         self.assertEqual(src.ext, 'png')
@@ -36,19 +37,13 @@ class FilesTests(unittest.TestCase):
 
     def test_file_target(self):
         dir = "C:\Me"
-        targ = files.FileTarget("C:\Me", "abc", "jpg", None)
+        targ = core.model.FileTarget("C:\Me", "abc", "jpg", None)
         self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
 
     def test_file_target_with_dot_in_ext(self):
         dir = "C:\Me"
-        targ = files.FileTarget("C:\Me", "abc", ".jpg", None)
+        targ = core.model.FileTarget("C:\Me", "abc", ".jpg", None)
         self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
-
-    def test_directory_target_copyfrom(self):
-        targ = files.DirectoryTarget("C:/Me")
-        filetarg = targ.copy_filename_from(
-            files.URLSource("http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"))
-        self.assertEqual(str(filetarg), os.path.join(targ.folder, "20160511_085022_gray.png"))
 
     def test_should_confirm_is_url(self):
         correcturl = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"

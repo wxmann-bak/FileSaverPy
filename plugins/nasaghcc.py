@@ -1,7 +1,8 @@
+import re
 from datetime import datetime as dt, timedelta
 from enum import Enum
-import re
-from savers import periodic
+
+from core import source, urlextractors, web, target, saver
 
 __author__ = 'tangz'
 
@@ -33,7 +34,7 @@ class MapType(Enum):
     NONE = 'none'
 
 
-def savesetting(sector, lat, long, sattype, zoom,
+def ghccsetting(sector, lat, long, sattype, zoom,
                 maptype=MapType.STANDARD, past=0, palette='ir2.pal', mapcolor='black',
                 quality=90, width=1000, height=800):
     colorbar = 0  # job fails if this is = 1
@@ -56,17 +57,35 @@ def savesetting(sector, lat, long, sattype, zoom,
     return queryparams
 
 
-def savenasaghcc1(savesettings, saveloc, save_period, img_dt=None):
-    thesaver = periodic.PeriodicSaver()
-    for setting in savesettings:
-        baseurl = 'http://weather.msfc.nasa.gov/cgi-bin/get-goes?'
-        queryparamspart = '&'.join("{0}={1}".format(key, re.sub(r"\s+", "%20", str(setting[key]))) for key, val
-                                   in setting.items())
-        completeurl = baseurl + queryparamspart
+def tourl(ghccsettings):
+    baseurl = 'http://weather.msfc.nasa.gov/cgi-bin/get-goes?'
+    queryparamspart = '&'.join("{0}={1}".format(key, re.sub(r"\s+", "%20", str(ghccsettings[key]))) for key, val
+                               in ghccsettings.items())
+    return baseurl + queryparamspart
 
-        mutator = lambda x: setting['info'] + "_ghcc"
-        thesaver.adddynamicjob(completeurl, saveloc, save_period, mutator, ghcc_timeextractor, img_dt)
-    thesaver.executesaves()
+
+_TARGET_FORMAT = "{sattype}_{ts}_[{lat},{lon}]"
+
+_TIMESTAMP_FORMAT = "%y%m%d%H%M%S"
+
+
+def savenasaghcc1(ghccsettings, saveloc, save_period, every_fifteen=True):
+    url = tourl(ghccsettings)
+    timefilter = lambda timestamp: timestamp.minute % 15 == 0 if every_fifteen else True
+    src = source.singular(urlextractors.parse_html_response(web.ImagesHTMLParser), timeextractor=ghcc_timeextractor,
+                          timefilter=timefilter)
+
+    def filenamefunc(template, timestamp, sattype, lat, lon, zoom):
+        return template.format(sattype=sattype, ts=timestamp.strftime(_TIMESTAMP_FORMAT), lat=lat, lon=lon, zoom=zoom)
+
+    targ = target.withfiletemplate(filenamefunc, _TARGET_FORMAT, sattype=ghccsettings['info'], lat=ghccsettings['lat'],
+                                   lon=ghccsettings['lon'], zoom=ghccsettings['zoom'])
+
+    thesaver = saver.Saver(src, targ, saveperiod=save_period)
+    jobid = "_".join(
+        [ghccsettings['info'], str(ghccsettings['lat']), str(ghccsettings['lon']), str(ghccsettings['zoom'])])
+    thesaver.submit(jobid, url, saveloc)
+    thesaver.save()
 
 
 def ghcc_timeextractor(url):

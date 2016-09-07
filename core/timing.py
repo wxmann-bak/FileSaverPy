@@ -1,37 +1,40 @@
-__author__ = 'tangz'
+import re
+from datetime import datetime
+
+from core import web
 
 
-class TimeConfig(object):
-    # interval < 0 means that images must not have the same timing
-    def __init__(self, interval, start=None, end=None):
-        self.interval = interval
-        if start and end and start > end:
-            raise ValueError("Start time: {0} > end time: {1}".format(start, end))
-        self.start = start
-        self.end = end
+# def img_interval_filter(min_interval):
+#     def thefilter(timestamp, hist):
+#         if not hist:
+#             return True
+#         elif timestamp in [hist_save.timestamp for hist_save in hist]:
+#             return False
+#         dt = timestamp - hist[-1].timestamp
+#         return dt >= min_interval
+#     return thefilter
 
 
-def passestime(urlsrc, timeconfig, hist):
-    if not timeconfig or not urlsrc.timestamp:
-        return True
+def start_end_filter(start=None, end=None):
+    def thefilter(timestamp):
+        if start and end:
+            return start <= timestamp <= end
+        elif start:
+            return start <= timestamp
+        elif end:
+            return timestamp <= end
+        else:
+            return True
+    return thefilter
 
-    if timeconfig.start and timeconfig.end:
-        rangepasses = timeconfig.start <= urlsrc.timestamp <= timeconfig.end
-    elif timeconfig.start:
-        rangepasses = timeconfig.start <= urlsrc.timestamp
-    elif timeconfig.end:
-        rangepasses = urlsrc.timestamp <= timeconfig.end
-    else:
-        rangepasses = True
 
-    if not hist:
-        intervalpasses = True
-    elif urlsrc.timestamp in [hist_save.timestamp for hist_save in hist]:
-        intervalpasses = False
-    elif timeconfig.interval:
-        dt = urlsrc.timestamp - hist[-1].timestamp
-        intervalpasses = dt >= timeconfig.interval
-    else:
-        intervalpasses = True
+### Time extractor ###
 
-    return rangepasses and intervalpasses
+
+def regex_timeextractor(regex, dateformat):
+    def theextractor(file):
+        datepattern = re.search(regex, file)
+        if not datepattern:
+            raise web.InvalidResourceError("Cannot find date-time for file: {0}".format(file))
+        return datetime.strptime(datepattern.group(0), dateformat)
+    return theextractor

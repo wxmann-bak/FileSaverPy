@@ -1,7 +1,5 @@
 import os
 import urllib
-from savers.common import SaveError
-from core import web
 
 __author__ = 'tangz'
 
@@ -58,85 +56,9 @@ def get_file_url(parentpath, file):
     return urllib.parse.urljoin(withslash(parentpath), file)
 
 
-class URLSource(object):
-    def __init__(self, url, timeextractor=None):
-        self.url = url
-        self.filebase = None
-        self.timestamp = None
-        self.ext = None
-        self.host = None
-        self.scheme = None
-        self.extractall(timeextractor)
-
-    def extractall(self, timeextractor):
-        urlcomponents = urllib.parse.urlparse(self.url)
-        self.scheme = urlcomponents.scheme
-        self.host = urlcomponents.netloc
-        basepath = os.path.basename(urlcomponents.path)
-
-        if isfile(self.url):
-            splitbasepath = os.path.splitext(basepath)
-            self.filebase = splitbasepath[0]
-            self.ext = splitbasepath[1][1:]
-
-        self.timestamp = None if timeextractor is None else timeextractor(self.url)
-
-    def __str__(self):
-        return self.url
+def get_scheme(url):
+    return urllib.parse.urlparse(url).scheme
 
 
-class DynamicURLSource(URLSource):
-    def __init__(self, url, timeextractor=None):
-        self.requesturl = url
-        self._saved_timeextractor = timeextractor
-        self._extract_protocol_host()
-
-    def _extract_protocol_host(self):
-        urlcomponents = urllib.parse.urlparse(self.requesturl)
-        self.scheme = urlcomponents.scheme
-        self.host = urlcomponents.netloc
-
-    def refresh(self):
-        htmlwithimg = web.gethtmlforpage(self.requesturl)
-        parser = web.ImagesHTMLParser()
-        parser.feed(htmlwithimg)
-        allimages = parser.foundimages
-
-        if not allimages:
-            raise SaveError("Cannot find images for: " + self.requesturl)
-        elif len(allimages) == 1:
-            img = allimages[0]
-            self.url = img if isurl(img) else geturl(self.scheme, self.host, img)
-            self.extractall(timeextractor=self._saved_timeextractor)
-        else:
-            raise SaveError("Found more than one image for: " + self.requesturl)
-
-
-class FileTarget(object):
-    def __init__(self, folder, file, ext, timestamp):
-        self.folder = folder
-        self.file = file
-        self.ext = ext
-        self.timestamp = timestamp
-
-    def __str__(self):
-        return os.path.join(self.folder, self.file + withdotsep(self.ext))
-
-
-class DirectoryTarget(object):
-    def __init__(self, folder):
-        self.folder = folder
-
-    def copy_filename_from(self, urlsrc, mutator=None):
-        thetime = dt.utcnow() if urlsrc.timestamp is None else urlsrc.timestamp
-        file = urlsrc.filebase if mutator is None else mutator(urlsrc.filebase)
-        return FileTarget(self.folder, file=file, ext=urlsrc.ext, timestamp=thetime)
-
-    def get_timestamped_file(self, base, ext, file_time=None, mutator=None):
-        filebase = base if mutator is None else mutator(base)
-        timestampedfile = buildfilename(base=filebase, appendval=gettimestamp(datetime=file_time))
-        return FileTarget(self.folder, timestampedfile, ext, timestamp=file_time)
-
-
-class InvalidResourceError(Exception):
-    pass
+def get_host(url):
+    return urllib.parse.urlparse(url).netloc
