@@ -6,13 +6,20 @@ from core.logs import logger
 from core.urlextractors import staticurl, listingurl
 
 
-def singular(urlsrc_func=staticurl, timeextractor=None, timefilter=None,
-             valid_exts=None, filename_filter=None):
+def singular(urlsrc_func=staticurl,
+             timeextractor=None,
+             timefilter=None,
+             valid_exts=None,
+             filename_filter=None):
     return SourceSetting(urlsrc_func, timeextractor, timefilter, valid_exts, filename_filter)
 
 
-def batch(urlset_func=listingurl, urlsrc_func=staticurl, timeextractor=None, timefilter=None,
-          valid_exts=None, filename_filter=None):
+def batch(urlset_func=listingurl,
+          urlsrc_func=staticurl,
+          timeextractor=None,
+          timefilter=None,
+          valid_exts=None,
+          filename_filter=None):
     indiv_setting = SourceSetting(urlsrc_func, timeextractor, timefilter, valid_exts, filename_filter)
     return BatchSourceSetting(indiv_setting, urlset_func)
 
@@ -65,19 +72,19 @@ class SourceSetting(object):
 
     def _passes_ext_filter(self):
         if not self._urlsrc.ext:  # is not a file
-            self._log_exclusion("not a file/ could not find extension to file")
+            self._log_exclusion("not a file/could not find extension to file")
             return False
         if not self.exts:  # allows all extensions
             return True
 
         if not self._urlsrc.ext in self.exts:
-            self._log_exclusion("extension not one of: " + self.exts)
+            self._log_exclusion("extension not one of file extensions: " + ', '.join(self.exts))
             return False
         else:
             return True
 
     def _passes_time_filter(self):
-        if not self.timeextractor or not self._urlsrc.timestamp:
+        if not self._urlsrc.timestamp or not self.timefilter:
             return True
 
         if not self.timefilter(self._urlsrc.timestamp):

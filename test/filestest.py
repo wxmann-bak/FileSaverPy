@@ -31,16 +31,6 @@ class FilesTests(unittest.TestCase):
         self.assertEqual(src.host, 'weather.rap.ucar.edu')
         self.assertEqual(src.scheme, 'http')
 
-    def test_file_target(self):
-        dir = "C:\Me"
-        targ = core.target.FileTarget("C:\Me", "abc", "jpg", None)
-        self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
-
-    def test_file_target_with_dot_in_ext(self):
-        dir = "C:\Me"
-        targ = core.target.FileTarget("C:\Me", "abc", ".jpg", None)
-        self.assertEqual(str(targ), os.path.join(dir, "abc.jpg"))
-
     def test_should_confirm_is_url(self):
         correcturl = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/KDLH/20160511_085022_gray.png"
         notcorrecturl = "weather.rap.ucar.edu"
