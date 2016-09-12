@@ -116,7 +116,9 @@ class BatchSourceSetting(object):
         return True
 
     def geturlsrcs(self):
-        return self._urlsrcs
+        saved_urlsrcs = self._urlsrcs
+        self._urlsrcs = []
+        return saved_urlsrcs
 
 
 class URLSource(object):

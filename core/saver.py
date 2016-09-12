@@ -34,6 +34,10 @@ class Saver(object):
         self._jobs[jobid] = _SaveJob(self.srcsetting, self.targsetting, self.saveperiod,
                                      self.min_img_interval, url, directory)
 
+    def clear(self, jobid):
+        if jobid in self._jobs:
+            del self._jobs[jobid]
+
     def save(self):
         for jobid in self._jobs:
             self._jobs[jobid].start()
