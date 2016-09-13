@@ -91,22 +91,10 @@ class _SaveJob(object):
             self._thread.start()
 
     def execute_save(self):
-        if self.srcsetting.isbatch():
-            self._execute_batch_save()
-        else:
-            self._execute_single_save()
-
-    def _execute_batch_save(self):
-        source = self.srcsetting.forurl(self.url)
-        for urlsrc in source.geturlsrcs():
-            if self._passes_interval(urlsrc):
-                self._actually_save(urlsrc)
-
-    def _execute_single_save(self):
-        source = self.srcsetting.forurl(self.url)
-        urlsrc = source.geturlsrc()
-        if source.shouldsave() and self._passes_interval(urlsrc):
-            self._actually_save(urlsrc)
+        urlsrcs_to_execute = self.srcsetting.urlsrcs_for(self.url)
+        for src in urlsrcs_to_execute:
+            if self._passes_interval(src):
+                self._actually_save(src)
 
     def _actually_save(self, urlsrc):
         target = self.targsetting.withdir(self.directory)

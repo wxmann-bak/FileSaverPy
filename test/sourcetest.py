@@ -1,109 +1,120 @@
-from datetime import datetime
 import unittest
 from unittest.mock import MagicMock, call, patch
 
 from core import source
 
-
 __author__ = 'tangz'
 
 
-class SingularSourceSettingTest(unittest.TestCase):
+class SourceConverterTest(unittest.TestCase):
     def setUp(self):
         self.url = 'http://www.ssd.noaa.gov/PS/TROP/floaters/16W/imagery/20160910_1930Z-avn.gif'
-        self.current_time = datetime.now()
+        self.current_time = MagicMock()
 
-    def test_should_extract_urlsrc(self):
-        mock_urlsrc = MagicMock()
-        mock_urlsrc_extractor = MagicMock(return_value=mock_urlsrc)
+    def test_should_convert_single_url_to_source(self):
+        urlsrc_to_return = MagicMock()
+        urlsrc_func = MagicMock(return_value=urlsrc_to_return)
 
-        srcsetting = source.singular(urlsrc_func=mock_urlsrc_extractor).forurl(self.url)
-        actual_urlsrc = srcsetting.geturlsrc()
+        converter = source.SourceConverter(urlsrc_func)
+        srcs = converter.to_sources(self.url)
+        urlsrc_func.assert_called_with(self.url)
+        self.assertEqual(srcs, [urlsrc_to_return])
 
-        mock_urlsrc_extractor.assert_called_with(self.url)
-        self.assertEqual(actual_urlsrc, mock_urlsrc)
+    def test_should_convert_single_url_to_source_with_timeextractor(self):
+        urlsrc_to_return = MagicMock()
+        urlsrc_to_return.url = self.url
+        timeextractor = MagicMock(return_value=self.current_time)
+        urlsrc_func = MagicMock(return_value=urlsrc_to_return)
 
-    def test_should_extract_urlsrc_with_timestamp(self):
-        mock_urlsrc = MagicMock()
-        mock_urlsrc.url = self.url
-        mock_urlsrc_extractor = MagicMock(return_value=mock_urlsrc)
-        mock_timeextractor = MagicMock(return_value=self.current_time)
+        converter = source.SourceConverter(urlsrc_func, timeextractor=timeextractor)
+        srcs = converter.to_sources(self.url)
 
-        srcsetting = source.singular(urlsrc_func=mock_urlsrc_extractor,
-                                     timeextractor=mock_timeextractor).forurl(self.url)
-        actual_urlsrc = srcsetting.geturlsrc()
+        timeextractor.assert_called_with(urlsrc_to_return.url)
+        self.assertEqual(srcs, [urlsrc_to_return])
+        self.assertEqual(urlsrc_to_return.timestamp, self.current_time)
 
-        mock_urlsrc_extractor.assert_called_with(self.url)
-        mock_timeextractor.assert_called_with(mock_urlsrc.url)
+    def test_should_convert_url_set_to_sources(self):
+        number_of_urls = 4
+        urls_in_set = [self.url + '-{0}'.format(i) for i in range(number_of_urls)]
+        urlset_func = MagicMock(return_value=urls_in_set)
 
-        self.assertEqual(actual_urlsrc, mock_urlsrc)
-        self.assertEqual(actual_urlsrc.timestamp, self.current_time)
+        urlsrcs_for_set = [MagicMock() for url in urls_in_set]
+        urlsrc_func = MagicMock(side_effect=urlsrcs_for_set)
 
-    def _override_urlsrc_for_setting(self, urlsrc):
-        def dummyseturl(self, url):
-            self._urlsrc = urlsrc
-            return self
-        return dummyseturl
+        converter = source.SourceConverter(urlsrc_func, urlset_func)
+        srcs = converter.to_sources(self.url)
+        urlset_func.assert_called_with(self.url)
+        urlsrc_func.assert_has_calls([call(url) for url in urls_in_set])
+        self.assertEqual(srcs, urlsrcs_for_set)
 
+    def test_should_convert_url_set_to_sources_with_timeextractor(self):
+        number_of_urls = 4
+        urls_in_set = [self.url + '-{0}'.format(i) for i in range(number_of_urls)]
+        urlset_func = MagicMock(return_value=urls_in_set)
+
+        urlsrcs_for_set = [MagicMock() for url in urls_in_set]
+        for i in range(number_of_urls):
+            urlsrcs_for_set[i].url = urls_in_set[i]
+        urlsrc_func = MagicMock(side_effect=urlsrcs_for_set)
+        times_for_urls = [self.current_time + url[-1] for url in urls_in_set]
+        timeextractor = MagicMock(side_effect=times_for_urls)
+
+        converter = source.SourceConverter(urlsrc_func, urlset_func, timeextractor)
+        srcs = converter.to_sources(self.url)
+
+        calls_expected = []
+        for urlsrc in urlsrcs_for_set:
+            calls_expected.append(call.__bool__())
+            calls_expected.append(call(urlsrc.url))
+        timeextractor.assert_has_calls(calls_expected)
+        self.assertEqual([src.timestamp for src in srcs], times_for_urls)
+
+
+class SourceFilterTest(unittest.TestCase):
     def test_should_pass_time_filter(self):
         mock_urlsrc = MagicMock()
-        mock_urlsrc.timestamp = self.current_time
+        mock_urlsrc.timestamp = MagicMock()
         timefilter_pass = MagicMock(return_value=True)
 
-        with patch('core.source.SourceSetting.forurl', new=self._override_urlsrc_for_setting(mock_urlsrc)):
-            srcsetting = source.singular(timefilter=timefilter_pass).forurl(self.url)
-            url_passes = srcsetting.shouldsave()
+        srcfilter = source.SourceFilter(timefilter=timefilter_pass)
+        should_pass = srcfilter.should_save(mock_urlsrc)
 
-            timefilter_pass.assert_called_with(mock_urlsrc.timestamp)
-            self.assertTrue(url_passes)
+        timefilter_pass.assert_called_with(mock_urlsrc.timestamp)
+        self.assertTrue(should_pass)
 
     def test_should_pass_ext_filter(self):
         mock_urlsrc = MagicMock()
         mock_urlsrc.ext = 'gif'
 
-        with patch('core.source.SourceSetting.forurl', new=self._override_urlsrc_for_setting(mock_urlsrc)):
-            srcsetting_fail = source.singular(valid_exts=['jpg', 'png']).forurl(self.url)
-            srcsetting_pass = source.singular(valid_exts=['gif', 'png']).forurl(self.url)
+        filter_fail = source.SourceFilter(valid_exts=['jpg', 'png'])
+        filter_pass = source.SourceFilter(valid_exts=['gif', 'png'])
 
-            self.assertFalse(srcsetting_fail.shouldsave())
-            self.assertTrue(srcsetting_pass.shouldsave())
+        self.assertFalse(filter_fail.should_save(mock_urlsrc))
+        self.assertTrue(filter_pass.should_save(mock_urlsrc))
 
     def test_should_pass_filename_filter(self):
         mock_urlsrc = MagicMock()
         mock_urlsrc.filebase = '20160910_1930Z-avn'
         mock_filename_filter = MagicMock(return_value=True)
 
-        with patch('core.source.SourceSetting.forurl', new=self._override_urlsrc_for_setting(mock_urlsrc)):
-            srcsetting = source.singular(filename_filter=mock_filename_filter).forurl(self.url)
-            passes = srcsetting.shouldsave()
+        thefilter = source.SourceFilter(filename_filter=mock_filename_filter)
+        passes = thefilter.should_save(mock_urlsrc)
 
-            mock_filename_filter.assert_called_with(mock_urlsrc.filebase)
-            self.assertTrue(passes)
+        mock_filename_filter.assert_called_with(mock_urlsrc.filebase)
+        self.assertTrue(passes)
 
 
-class BatchSourceSettingTest(unittest.TestCase):
-    def test_should_extract_urlsrcs(self):
-        number_of_urls = 3
-        urls = ['http://www.ssd.noaa.gov/20160910_1930Z-avn-{0}.gif'.format(i) for i in range(number_of_urls)]
-        parent_url = 'http://www.ssd.noaa.gov/allimages'
-        urlsrcs_map = {}
-        for url in urls:
-            mock_urlsrc_to_add = MagicMock()
-            mock_urlsrc_to_add.url = url
-            urlsrcs_map[url] = mock_urlsrc_to_add
-        urlsrc_mocks = urlsrcs_map.values()
+class SourceSettingTest(unittest.TestCase):
+    def test_should_get_urlsrcs_with_converter_and_filter(self):
+        dummyurl = 'dummyurl'
+        dummyurlsrcs = [MagicMock() for i in range(3)]
+        converter = source.SourceConverter(None)
+        srcfilter = source.SourceFilter()
+        with patch.object(converter, 'to_sources', return_value=dummyurlsrcs, autospec=True) as mock_conversion:
+            with patch.object(srcfilter, 'should_save', return_value=True, autospec=True) as mock_filter:
+                srcsetting = source.SourceSetting(converter, srcfilter)
+                urlsrcs = srcsetting.urlsrcs_for(dummyurl)
 
-        mock_urlset_func = MagicMock(return_value=urls)
-        def set_url_stub(self, theurl):
-            self._urlsrc = urlsrcs_map[theurl]
-        with patch('core.source.SourceSetting.forurl', new=set_url_stub):
-            with patch('core.source.SourceSetting.shouldsave', return_value=True) as mock_shouldsave:
-                indiv_setting = source.singular()
-                batch_setting = source.BatchSourceSetting(indiv_setting, mock_urlset_func).forurl(parent_url)
-                all_outputs = batch_setting.geturlsrcs()
-
-                mock_urlset_func.assert_called_with(parent_url)
-                mock_shouldsave.assert_has_calls([call() for i in range(number_of_urls)])
-
-                for urlsrc_mock in urlsrc_mocks:
-                    self.assertIn(urlsrc_mock, all_outputs)
+                mock_conversion.assert_called_with(dummyurl)
+                mock_filter.assert_has_calls([call(dummysrc) for dummysrc in dummyurlsrcs])
+                self.assertEqual(urlsrcs, dummyurlsrcs)

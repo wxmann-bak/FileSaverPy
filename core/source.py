@@ -6,119 +6,105 @@ from core.logs import logger
 from core.urlextractors import staticurl, listingurl
 
 
-def singular(urlsrc_func=staticurl,
-             timeextractor=None,
-             timefilter=None,
-             valid_exts=None,
+def singular(urlsrc_func=staticurl, timeextractor=None, timefilter=None, valid_exts=None,
              filename_filter=None):
-    return SourceSetting(urlsrc_func, timeextractor, timefilter, valid_exts, filename_filter)
+
+    srcfilter = SourceFilter(timefilter, valid_exts, filename_filter)
+    srcconverter = SourceConverter(urlsrc_func, urlset_func=None, timeextractor=timeextractor)
+    return SourceSetting(srcconverter, srcfilter)
 
 
-def batch(urlset_func=listingurl,
-          urlsrc_func=staticurl,
-          timeextractor=None,
-          timefilter=None,
-          valid_exts=None,
-          filename_filter=None):
-    indiv_setting = SourceSetting(urlsrc_func, timeextractor, timefilter, valid_exts, filename_filter)
-    return BatchSourceSetting(indiv_setting, urlset_func)
+def batch(urlset_func=listingurl, urlsrc_func=staticurl, timeextractor=None, timefilter=None,
+          valid_exts=None, filename_filter=None):
+
+    srcfilter = SourceFilter(timefilter, valid_exts, filename_filter)
+    srcconverter = SourceConverter(urlsrc_func, urlset_func, timeextractor)
+    return SourceSetting(srcconverter, srcfilter)
 
 
 # timeextractor: raw url -> time
+class SourceSetting(object):
+    def __init__(self, src_converter, src_filter):
+        self.src_converter = src_converter
+        self.src_filter = src_filter
+
+    def urlsrcs_for(self, url, filtered=True):
+        all_srcs = self.src_converter.to_sources(url)
+        if not filtered:
+            return all_srcs
+        return [src for src in all_srcs if self.src_filter.should_save(src)]
+
+
+class SourceConverter(object):
+    def __init__(self, urlsrc_func, urlset_func=None, timeextractor=None):
+        self.urlsrc_func = urlsrc_func
+        self.urlset_func = urlset_func
+        self.timeextractor = timeextractor
+
+    def to_sources(self, url):
+        if self.urlset_func:
+            urls_extracted = self.urlset_func(url)
+            return [self._to_source_single(url_extracted) for url_extracted in urls_extracted]
+        return [self._to_source_single(url)]
+
+    def _to_source_single(self, input_url):
+        urlsrc = self.urlsrc_func(input_url)
+        if self.timeextractor:
+            try:
+                urlsrc.timestamp = self.timeextractor(urlsrc.url)
+            except:
+                logger.error("Cannot extract timestamp from: " + input_url)
+        return urlsrc
+
+
 # timefilter: time -> pass/no pass
 # filename_filter: url file base -> pass/no pass
-class SourceSetting(object):
-    def __init__(self, urlsrc_extractor, timeextractor, timefilter, valid_exts, filename_filter):
-        self.urlsrc_extractor = urlsrc_extractor
-        self.timeextractor = timeextractor
+class SourceFilter(object):
+    def __init__(self, timefilter=None, valid_exts=None, filename_filter=None):
         self.timefilter = timefilter
-        self._urlsrc = None
         self.exts = valid_exts
         self.filename_filter = filename_filter
 
-    def _check_if_url_saved(self):
-        if not self._urlsrc:
-            raise ValueError("URL input has not be set yet.")
+    def should_save(self, urlsrc):
+        return self._passes_file_filter(urlsrc) and self._passes_ext_filter(urlsrc) \
+               and self._passes_time_filter(urlsrc)
 
-    def forurl(self, url):
-        self._urlsrc = self.urlsrc_extractor(url)
-        if self.timeextractor is not None:
-            try:
-                self._urlsrc.timestamp = self.timeextractor(self._urlsrc.url)
-            except:
-                logger.error("Cannot extract timestamp from: " + url)
-        return self
-
-    def geturlsrc(self):
-        self._check_if_url_saved()
-        return self._urlsrc
-
-    def shouldsave(self):
-        self._check_if_url_saved()
-        return self._passes_file_filter() and self._passes_ext_filter() and self._passes_time_filter()
-
-    def isbatch(self):
-        return False
-
-    def _passes_file_filter(self):
+    def _passes_file_filter(self, urlsrc):
         if not self.filename_filter:
             return True
 
-        if not self.filename_filter(self._urlsrc.filebase):
-            self._log_exclusion("file name does not pass file name filter")
+        if not self.filename_filter(urlsrc.filebase):
+            SourceFilter._log_exclusion(urlsrc, "file name does not pass file name filter")
             return False
         else:
             return True
 
-    def _passes_ext_filter(self):
-        if not self._urlsrc.ext:  # is not a file
-            self._log_exclusion("not a file/could not find extension to file")
+    def _passes_ext_filter(self, urlsrc):
+        if not urlsrc.ext:  # is not a file
+            SourceFilter._log_exclusion(urlsrc, "not a file/could not find extension to file")
             return False
         if not self.exts:  # allows all extensions
             return True
 
-        if not self._urlsrc.ext in self.exts:
-            self._log_exclusion("extension not one of file extensions: " + ', '.join(self.exts))
+        if not urlsrc.ext in self.exts:
+            SourceFilter._log_exclusion(urlsrc, "extension not one of file extensions: " + ', '.join(self.exts))
             return False
         else:
             return True
 
-    def _passes_time_filter(self):
-        if not self._urlsrc.timestamp or not self.timefilter:
+    def _passes_time_filter(self, urlsrc):
+        if not urlsrc.timestamp or not self.timefilter:
             return True
 
-        if not self.timefilter(self._urlsrc.timestamp):
-            self._log_exclusion("timestamp does not fit in timing criteria")
+        if not self.timefilter(urlsrc.timestamp):
+            SourceFilter._log_exclusion(urlsrc, "timestamp does not fit in timing criteria")
             return False
         else:
             return True
 
-    def _log_exclusion(self, reason):
-        logger.debug("File: {0} excluded on basis of: {1}".format(self._urlsrc.url, reason))
-
-
-# filename_builder: file base + timestamp -> new file base
-class BatchSourceSetting(object):
-    def __init__(self, indiv_setting, urlset_extractor):
-        self._internal_setting = indiv_setting
-        self._urlsrcs = []
-        self.urlset_extractor = urlset_extractor
-
-    def forurl(self, parent_url):
-        newurls = self.urlset_extractor(parent_url)
-        for newurl in newurls:
-            self._internal_setting.forurl(newurl)
-            if self._internal_setting.shouldsave():
-                self._urlsrcs.append(self._internal_setting.geturlsrc())
-        return self
-
-    def isbatch(self):
-        return True
-
-    def geturlsrcs(self):
-        saved_urlsrcs = self._urlsrcs
-        self._urlsrcs = []
-        return saved_urlsrcs
+    @classmethod
+    def _log_exclusion(cls, urlsrc, reason):
+        logger.debug("File: {0} excluded on basis of: {1}".format(urlsrc.url, reason))
 
 
 class URLSource(object):
