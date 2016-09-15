@@ -16,7 +16,7 @@ def save_ral_historical(station, targetdir, start, end, img_interval_min=0, bg='
     url = "http://weather.rap.ucar.edu/radar/nws_nids/BREF1/" + station
     jobid = station + '-refl-historical'
     thesaver.submit(jobid, url, targetdir)
-    thesaver.save()
+    thesaver.runjob(jobid)
 
 
 def getbatchsaver(station, start, end, img_interval_min, bg):
@@ -28,4 +28,5 @@ def getbatchsaver(station, start, end, img_interval_min, bg):
                               filename_filter=filename_filter, timefilter=time_filter)
     targsetting = target.copyfilename(filename_builder)
 
-    return saver.Saver(srcsetting, targsetting, min_img_interval=timedelta(minutes=img_interval_min))
+    return saver.Session().create_context('ral', srcsetting, targsetting,
+                                          min_img_interval=timedelta(minutes=img_interval_min))

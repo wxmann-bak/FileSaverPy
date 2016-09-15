@@ -4,7 +4,7 @@ from core import saver
 
 __author__ = 'tangz'
 
-
+@unittest.skip
 class SaverTest(unittest.TestCase):
     def setUp(self):
         self.url = 'http://cool.html/img.jpg'

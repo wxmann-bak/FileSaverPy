@@ -81,11 +81,11 @@ def savenasaghcc1(ghccsettings, saveloc, save_period, every_fifteen=True):
     targ = target.withfiletemplate(filenamefunc, _TARGET_FORMAT, sattype=ghccsettings['info'], lat=ghccsettings['lat'],
                                    lon=ghccsettings['lon'], zoom=ghccsettings['zoom'])
 
-    thesaver = saver.Saver(src, targ, saveperiod=save_period)
+    thesaver = saver.Session().create_context('ghcc', src, targ, saveperiod=save_period)
     jobid = "_".join(
         [ghccsettings['info'], str(ghccsettings['lat']), str(ghccsettings['lon']), str(ghccsettings['zoom'])])
     thesaver.submit(jobid, url, saveloc)
-    thesaver.save()
+    thesaver.runall()
 
 
 def ghcc_timeextractor(url):

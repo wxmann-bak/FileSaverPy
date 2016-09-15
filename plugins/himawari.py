@@ -24,11 +24,11 @@ def save_target_sector_realtime(sattype, saveloc, save_period=timedelta(hours=1)
     batchsetting = _get_src_setting(sattype, filename_filter, addnl_time_filter, urlset_func=timed_urlset)
     targsetting = _get_targ_setting(sattype)
 
-    thesaver = saver.Saver(batchsetting, targsetting, saveperiod=save_period)
+    thesaver = saver.Session().create_context('himawari-realtime', batchsetting, targsetting, saveperiod=save_period)
 
     jobid = '{0}-himawari-realtime'.format(sattype)
     thesaver.submit(jobid, url_raw, saveloc)
-    thesaver.save()
+    thesaver.runjob(jobid, end=datetime.now() + timedelta(seconds=10))
 
 
 def save_target_sector_hist(sattype, hours, saveloc, filename_filter=None, addnl_time_filter=lambda ts: True):
@@ -36,15 +36,14 @@ def save_target_sector_hist(sattype, hours, saveloc, filename_filter=None, addnl
     batchsetting = _get_src_setting(sattype, filename_filter, addnl_time_filter)
     targsetting = _get_targ_setting(sattype)
 
-    thesaver = saver.Saver(batchsetting, targsetting)
+    thesaver = saver.Session().create_context('himawari-hist', batchsetting, targsetting)
 
     for hr in hours:
         hr_str = str(hr) if hr >= 10 else ('0' + str(hr))
         jobid = '{0}-himawari-{1}'.format(sattype, hr_str)
         url = url_raw + hr_str
         thesaver.submit(jobid, url, saveloc)
-        thesaver.save()
-        thesaver.clear(jobid)
+        thesaver.runjob(jobid)
 
 
 def _get_src_setting(sattype, filename_filter, addnl_time_filter, urlset_func=urlextractors.listingurl):

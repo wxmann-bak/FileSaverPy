@@ -15,8 +15,9 @@ _FILETARG_EC_TEMPLATE = "{sattype}-{ts}"
 def savegoesprojsci(sector, savelocation, start, end, every_fifteen=True):
     thesaver = getbatchsaver(sector, start, end, every_fifteen)
     url = "http://goes.gsfc.nasa.gov/goeseast/{0}/vis/".format(sector)
-    thesaver.submit("-".join([sector, "vis"]), url, savelocation)
-    thesaver.save()
+    jobid = "-".join([sector, "vis"])
+    thesaver.submit(jobid, url, savelocation)
+    thesaver.runjob(jobid)
 
 
 def savegoesprojsci_ec(savelocation, start, end, every_fifteen=True, older=False):
@@ -26,7 +27,7 @@ def savegoesprojsci_ec(savelocation, start, end, every_fifteen=True, older=False
     if older:
         url += "older_images/"
     thesaver.submit("visir-ec", url, savelocation)
-    thesaver.save()
+    thesaver.runjob("visir-ec")
 
 
 def getbatchsaver(sector, start, end, every_fifteen, sattype='vis', template=_FILETARG_VIS_TEMPLATE):
@@ -49,4 +50,4 @@ def getbatchsaver(sector, start, end, every_fifteen, sattype='vis', template=_FI
     srcsettg = source.batch(timeextractor=timeextractor_fn, timefilter=timestamp_filter, valid_exts=_EXTS,
                             filename_filter=removelatest)
     targsettg = target.withfiletemplate(customfilename, template, sector=sector, sattype=sattype)
-    return saver.Saver(srcsettg, targsettg)
+    return saver.Session().create_context('goesprojsci', srcsettg, targsettg)
