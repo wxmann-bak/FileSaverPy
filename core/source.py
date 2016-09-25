@@ -86,7 +86,7 @@ class SourceFilter(object):
         if not self.exts:  # allows all extensions
             return True
 
-        if not urlsrc.ext in self.exts:
+        if urlsrc.ext not in self.exts:
             SourceFilter._log_exclusion(urlsrc, "extension not one of file extensions: " + ', '.join(self.exts))
             return False
         else:

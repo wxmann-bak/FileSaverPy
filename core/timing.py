@@ -4,6 +4,14 @@ from datetime import datetime
 from core import web
 
 
+def current_time(tz=None):
+    return datetime.now(tz=tz)
+
+
+def current_utc():
+    return datetime.utcnow()
+
+
 def start_end_filter(start=None, end=None):
     def thefilter(timestamp):
         if start and end:

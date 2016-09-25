@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import functools
+from core import timing
 
 from core.files import withdotsep
 
@@ -31,7 +32,7 @@ class TargetSetting(object):
 
     def tofiletarget(self, urlsrc):
         self._check_has_dir()
-        thetime = urlsrc.timestamp if urlsrc.timestamp else datetime.utcnow()
+        thetime = urlsrc.timestamp if urlsrc.timestamp else timing.current_utc()
         if self.overwriting_template:
             file = self.filename_builder(self.overwriting_template, thetime)
         else:

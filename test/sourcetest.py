@@ -110,11 +110,12 @@ class SourceSettingTest(unittest.TestCase):
         dummyurlsrcs = [MagicMock() for i in range(3)]
         converter = source.SourceConverter(None)
         srcfilter = source.SourceFilter()
-        with patch.object(converter, 'to_sources', return_value=dummyurlsrcs, autospec=True) as mock_conversion:
-            with patch.object(srcfilter, 'should_save', return_value=True, autospec=True) as mock_filter:
-                srcsetting = source.SourceSetting(converter, srcfilter)
-                urlsrcs = srcsetting.urlsrcs_for(dummyurl)
+        with patch.object(converter, 'to_sources', return_value=dummyurlsrcs,
+                          autospec=True) as mock_conversion, patch.object(srcfilter, 'should_save', return_value=True,
+                                                                          autospec=True) as mock_filter:
+            srcsetting = source.SourceSetting(converter, srcfilter)
+            urlsrcs = srcsetting.urlsrcs_for(dummyurl)
 
-                mock_conversion.assert_called_with(dummyurl)
-                mock_filter.assert_has_calls([call(dummysrc) for dummysrc in dummyurlsrcs])
-                self.assertEqual(urlsrcs, dummyurlsrcs)
+            mock_conversion.assert_called_with(dummyurl)
+            mock_filter.assert_has_calls([call(dummysrc) for dummysrc in dummyurlsrcs])
+            self.assertEqual(urlsrcs, dummyurlsrcs)
