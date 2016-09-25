@@ -1,4 +1,3 @@
-# from filesaver import user_session, root_parser
 import logging
 from plugins import ssd
 
@@ -18,7 +17,7 @@ def register_plugin(name, plugin_func):
 
 def retrieve(name):
     try:
-        return _packaged_plugins.get[name]
+        return _packaged_plugins[name]
     except KeyError:
-        logging.error("Plugin {0} does not exist")
+        logging.error("Plugin {0} does not exist".format(name))
 
