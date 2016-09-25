@@ -4,8 +4,8 @@ __author__ = 'tangz'
 
 logger = logging.getLogger('')
 logger.setLevel(logging.DEBUG)
-format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+frmt = logging.Formatter("%(asctime)s - %(threadName)s - %(levelname)s - %(message)s")
 
 ch = logging.StreamHandler()
-ch.setFormatter(format)
+ch.setFormatter(frmt)
 logger.addHandler(ch)

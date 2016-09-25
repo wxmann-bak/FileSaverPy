@@ -24,12 +24,16 @@ def dosave(srcfile, destloc):
 
 class Session(object):
     def __init__(self):
-        self._contexts = {}
+        self._contexts = []
+
+    def add_context(self, context):
+        self._contexts.append(context)
+
 
     def create_context(self, contextid, srcsetting, targsetting, executor=dosave,
                        saveperiod=None, min_img_interval=None):
         thecontext = Context(srcsetting, targsetting, executor, saveperiod, min_img_interval)
-        self._contexts[contextid] = thecontext
+        self._contexts.append(thecontext)
         return thecontext
 
 

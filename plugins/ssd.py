@@ -18,10 +18,10 @@ def load_config(file):
     outputdir = props['Dir']
 
     saveperiod = timedelta(hours=hrs)
-    return _ssd_context_animated(stormid, types, outputdir, saveperiod)
+    return ssd_context_animated(stormid, types, outputdir, saveperiod)
 
 
-def _ssd_context_animated(storm_id, sattypes, saveloc, saveperiod):
+def ssd_context_animated(storm_id, sattypes, saveloc, saveperiod):
     mutator = lambda file, timestamp: "-".join(
         [storm_id, file.replace("-animated", ""), timestamp.strftime(_OUTPUT_DATEFORMAT)])
     srcsetting = source.singular()
