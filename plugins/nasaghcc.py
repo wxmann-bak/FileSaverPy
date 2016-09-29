@@ -7,15 +7,13 @@ from core import source, urlextractors, web, target, saver
 
 __author__ = 'tangz'
 
-
 _ZOOM_MAP = {'high': 1, 'medium': 2, 'low': 4}
-_REVERSE_ZOOM_MAP = {y:x for x,y in _ZOOM_MAP.items()}
+_REVERSE_ZOOM_MAP = {y: x for x, y in _ZOOM_MAP.items()}
 
 
 def load_config(file):
     config = configparser.ConfigParser()
     config.read(file)
-    print(config.sections())
 
     mapoptions = config['MAP OPTIONS']
     positioning = config['POSITIONING']
@@ -77,9 +75,9 @@ def tourl(ghccsettings):
     return baseurl + queryparamspart
 
 
-_TARGET_FORMAT = "ghcc-{sattype}_[{lat},{lon}]_{ts}"
+_TARGET_FORMAT = "ghcc-{sattype}_{ts}_[{lat},{lon}]"
 
-_TIMESTAMP_FORMAT = "%y%m%d%H%M%S"
+_TIMESTAMP_FORMAT = "%y%m%d%H%M"
 
 
 def savenasaghcc1(ghccsettings, saveloc, save_period, every_fifteen=True):
@@ -92,10 +90,11 @@ def savenasaghcc1(ghccsettings, saveloc, save_period, every_fifteen=True):
         return template.format(sattype=sattype, ts=timestamp.strftime(_TIMESTAMP_FORMAT), lat=lat, lon=lon, zoom=zoom)
 
     targ = target.withfiletemplate(filenamefunc, _TARGET_FORMAT, sattype=ghccsettings['info'], lat=ghccsettings['lat'],
-                                   lon=ghccsettings['lon'], zoom=_REVERSE_ZOOM_MAP[ghccsettings['zoom']])
+                                   lon=ghccsettings['lon'], zoom=ghccsettings['zoom'])
 
     contextid = "_".join(
-        [ghccsettings['info'], str(ghccsettings['lat']), str(ghccsettings['lon']), str(ghccsettings['zoom'])])
+        [ghccsettings['info'], str(ghccsettings['lat']), str(ghccsettings['lon']),
+         str(_REVERSE_ZOOM_MAP[ghccsettings['zoom']])])
     thecontext = saver.Context(contextid, src, targ, saveperiod=save_period)
     thecontext.submit(contextid, url, saveloc)
     return thecontext
