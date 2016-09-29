@@ -90,6 +90,9 @@ class Context(object):
         timer = threading.Timer(dt.seconds, job.stop)
         timer.start()
 
+    def __iter__(self):
+        return iter(self._jobs.values())
+
 
 class _SaveJob(threading.Thread):
     def __init__(self, name, context, url, saveloc):
@@ -129,6 +132,11 @@ class _SaveJob(threading.Thread):
     def stop(self):
         logger.info('Stopping job: ' + self.name)
         self._stop_event.set()
+
+    def is_running(self):
+        if self._stop_event.is_set():
+            return False
+        return True
 
     def _save_single(self):
         urlsrcs_to_execute = self.context.srcsetting.urlsrcs_for(self.url)

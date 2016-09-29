@@ -1,5 +1,6 @@
 import cmd
 from datetime import datetime
+from tabulate import tabulate
 
 from plugins import ssd
 
@@ -9,18 +10,32 @@ __author__ = 'tangz'
 class Session(cmd.Cmd):
     def __init__(self):
         cmd.Cmd.__init__(self)
-        self.contexts = {}
+        self._contexts = {}
         self.intro = 'New session started at: ' + datetime.now().strftime('%b %m, %Y at %I:%M %p local time')
 
+    def do_info(self, s):
+        context_separator = ['---', '---', '---']
+        table = []
+        headers = ['Contexts', 'Jobs', 'Job Status']
+        for context_id in self._contexts:
+            context = self._contexts[context_id]
+            i = 0
+            for job in context:
+                firstcol = context.name if i == 0 else ''
+                status = 'Running' if job.is_running() else 'Stopped'
+                table.append([firstcol, job.name, status])
+                i += 1
+            table.append(context_separator)
+        print(tabulate(table, headers=headers))
 
     def do_ssd(self, configfile):
         context = ssd.load_config(configfile)
-        self.contexts[context.name] = context
+        self._contexts[context.name] = context
         context.runall()
 
     def do_exit(self, s):
-        for context_id in self.contexts:
-            self.contexts[context_id].stopall()
+        for context_id in self._contexts:
+            self._contexts[context_id].stopall()
         return True
 
 
