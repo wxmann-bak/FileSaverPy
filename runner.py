@@ -23,15 +23,25 @@ def save_goesproj_vis():
 
 def save_ssd_periodic():
     meranti = "16W"
-    saveloc_meranti = "C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti"
+    saveloc_meranti = "C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti\\stuff\\test"
+    begin = datetime.now() + timedelta(seconds=5)
+    end = datetime.now() + timedelta(seconds=30)
+    ssd.save_ssd_animated(meranti, ['avn', 'rgb'], saveloc_meranti, timedelta(seconds=40), begin, end)
 
-    ssd.save_ssd_animated(meranti, ['avn', 'rgb', 'rbtop'], saveloc_meranti, timedelta(hours=5))
 
 def save_ssd_periodic_orlene():
     orlene = "16E"
     saveloc_orlene = "C:\\Users\\tangz\\Pictures\\2016_WX\\Hurricane_Orlene"
 
     ssd.save_ssd_animated(orlene, ['avn', 'rgb'], saveloc_orlene, timedelta(hours=5))
+
+
+def save_ssd_periodic_karl():
+    karl = "12L"
+    saveloc_karl = "C:\\Users\\tangz\\Pictures\\2016_WX\\Karl_maybe"
+
+    ssd.save_ssd_animated(karl, ['avn', 'rgb'], saveloc_karl, timedelta(hours=5),
+                          begin=datetime(year=2016, month=9, day=19, hour=12, minute=0))
 
 
 def save_nasaghcc_periodic():
@@ -69,12 +79,12 @@ def save_himawari_hist():
 
 def save_himawari_realtime():
     vis = 'vis'
-    saveloc_vis = 'C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti\\closeup-' + vis
+    saveloc_vis = 'C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti\\stuff\\test'
     himawari.save_target_sector_realtime(vis, saveloc_vis)
-
-    ir = 'ir'
-    saveloc_ir = 'C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti\\closeup-' + ir
-    himawari.save_target_sector_realtime(ir, saveloc_ir)
+    #
+    # ir = 'ir'
+    # saveloc_ir = 'C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Meranti\\closeup-' + ir
+    # himawari.save_target_sector_realtime(ir, saveloc_ir)
 
 
 
@@ -85,9 +95,12 @@ if __name__ == '__main__':
     # goesprojsci.savegoesprojsci_ec(saveloc, start, end)
     # save_ral_radar2()
     # save_ssd_periodic()
-    # save_ssd_periodic_orlene()
+    # save_ssd_periodic_karl()
     # save_goesproj_vis()
     # save_nasaghcc_all()
     # save_nasaghcc_periodic()
-    save_himawari_realtime()
+    # save_himawari_realtime()
     # save_himawari_hist()
+    configfile = "C:\\Users\\tangz\\Pictures\\2016_WX\\Typhoon_Megi_Test\\saveconfig.ini"
+    ssd_context = ssd.load_config(configfile)
+    ssd_context.runall()

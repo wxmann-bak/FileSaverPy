@@ -8,7 +8,6 @@ from core.urlextractors import staticurl, listingurl
 
 def singular(urlsrc_func=staticurl, timeextractor=None, timefilter=None, valid_exts=None,
              filename_filter=None):
-
     srcfilter = SourceFilter(timefilter, valid_exts, filename_filter)
     srcconverter = SourceConverter(urlsrc_func, urlset_func=None, timeextractor=timeextractor)
     return SourceSetting(srcconverter, srcfilter)
@@ -16,7 +15,6 @@ def singular(urlsrc_func=staticurl, timeextractor=None, timefilter=None, valid_e
 
 def batch(urlset_func=listingurl, urlsrc_func=staticurl, timeextractor=None, timefilter=None,
           valid_exts=None, filename_filter=None):
-
     srcfilter = SourceFilter(timefilter, valid_exts, filename_filter)
     srcconverter = SourceConverter(urlsrc_func, urlset_func, timeextractor)
     return SourceSetting(srcconverter, srcfilter)

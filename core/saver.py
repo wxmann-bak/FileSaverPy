@@ -1,10 +1,10 @@
-from datetime import datetime
 import os
 import threading
 import urllib.request
-from core import timing
 
+from core import timing
 from core.logs import logger
+
 
 _LOG_TIME_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -22,23 +22,9 @@ def dosave(srcfile, destloc):
         return True
 
 
-class Session(object):
-    def __init__(self):
-        self._contexts = []
-
-    def add_context(self, context):
-        self._contexts.append(context)
-
-
-    def create_context(self, contextid, srcsetting, targsetting, executor=dosave,
-                       saveperiod=None, min_img_interval=None):
-        thecontext = Context(srcsetting, targsetting, executor, saveperiod, min_img_interval)
-        self._contexts.append(thecontext)
-        return thecontext
-
-
 class Context(object):
-    def __init__(self, srcsetting, targsetting, executor=dosave, saveperiod=None, min_img_interval=None):
+    def __init__(self, name, srcsetting, targsetting, executor=dosave, saveperiod=None, min_img_interval=None):
+        self.name = name
         self.srcsetting = srcsetting
         self.targsetting = targsetting
         self.executor = executor
