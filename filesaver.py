@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 from tabulate import tabulate
 
-from plugins import ssd
+from plugins import ssd, nasaghcc
 
 __author__ = 'tangz'
 
@@ -36,7 +36,12 @@ class Session(cmd.Cmd):
         self._contexts[context.name] = context
         context.runall()
 
-    def do_kill_all(self, contextid):
+    def do_ghcc(self, configfile):
+        context = nasaghcc.load_config(configfile)
+        self._contexts[context.name] = context
+        context.runall()
+
+    def do_kill(self, contextid):
         if contextid not in self._contexts:
             logging.warning('Cannot find context: ' + contextid)
         else:

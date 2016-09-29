@@ -1,52 +1,65 @@
+import configparser
 import re
 from datetime import datetime as dt, timedelta
-from enum import Enum
 
 from core import source, urlextractors, web, target, saver
+
 
 __author__ = 'tangz'
 
 
-class Sector(Enum):
-    EASTERN_NORTH_AMERICA = "GOES-E CONUS"
-    GOES_E_FULL_DISK = "GOES-E FULL"
-    ATLANTIC_HURRICANE = "GOES-E HURRICANE"
-    NORTHERN_HEMISPHERE = "GOES-E NHE"
-    EASTERN_PACIFIC = "GOES-W PACUS"
+_ZOOM_MAP = {'high': 1, 'medium': 2, 'low': 4}
+_REVERSE_ZOOM_MAP = {y:x for x,y in _ZOOM_MAP.items()}
 
 
-class Zoom(Enum):
-    HIGH = 1
-    MEDIUM = 2
-    LOW = 4
+def load_config(file):
+    config = configparser.ConfigParser()
+    config.read(file)
+    print(config.sections())
 
+    mapoptions = config['MAP OPTIONS']
+    positioning = config['POSITIONING']
+    savesettings = config['SAVE SETTINGS']
+    defaults = config['DEFAULT']
 
-class Satellite(Enum):
-    VISIBLE = 'vis'
-    INFRARED = 'ir'
-    WATER_VAPOR = 'wv'
+    sector = positioning['sector'].upper()
+    lat = positioning.getfloat('lat')
+    lon = positioning.getfloat('long')
 
+    sattype = mapoptions['sattype'].lower()
+    zoomstr = mapoptions['zoom'].lower()
+    zoom = _ZOOM_MAP[zoomstr]
+    maptype = mapoptions['map'].lower()
 
-class MapType(Enum):
-    STANDARD = 'standard'
-    COUNTY = 'county'
-    LATLON = 'latlon'
-    NONE = 'none'
+    past = defaults.getint('past')
+    palette = defaults['palette']
+    mapcolor = defaults['mapcolor']
+    quality = defaults.getint('quality')
+    width = defaults.getint('width')
+    height = defaults.getint('height')
+
+    saveloc = savesettings['dir']
+    every_fifteen = savesettings.getboolean('every_fifteen_minutes')
+    minutes = savesettings.getint('poll_minutes')
+    saveperiod = timedelta(minutes=minutes)
+
+    ghccset = ghccsetting(sector, lat, lon, sattype, zoom, maptype, past, palette, mapcolor, quality, width, height)
+    return savenasaghcc1(ghccset, saveloc, saveperiod, every_fifteen)
 
 
 def ghccsetting(sector, lat, long, sattype, zoom,
-                maptype=MapType.STANDARD, past=0, palette='ir2.pal', mapcolor='black',
+                maptype='standard', past=0, palette='ir2.pal', mapcolor='black',
                 quality=90, width=1000, height=800):
     colorbar = 0  # job fails if this is = 1
     queryparams = {}
-    queryparams['satellite'] = sector.value
+    queryparams['satellite'] = sector
     queryparams['lat'] = lat
     queryparams['lon'] = long
-    queryparams['map'] = maptype.value
-    queryparams['zoom'] = zoom.value
-    queryparams['info'] = sattype.value
+    queryparams['map'] = maptype
+    queryparams['zoom'] = zoom
+    queryparams['info'] = sattype
     queryparams['past'] = past
-    if sattype != Satellite.VISIBLE:
+    if sattype != 'vis':
         queryparams['palette'] = palette
     queryparams['colorbar'] = colorbar
     queryparams['mapcolor'] = mapcolor
@@ -64,7 +77,7 @@ def tourl(ghccsettings):
     return baseurl + queryparamspart
 
 
-_TARGET_FORMAT = "{sattype}_{ts}_[{lat},{lon}]"
+_TARGET_FORMAT = "ghcc-{sattype}_[{lat},{lon}]_{ts}"
 
 _TIMESTAMP_FORMAT = "%y%m%d%H%M%S"
 
@@ -79,13 +92,13 @@ def savenasaghcc1(ghccsettings, saveloc, save_period, every_fifteen=True):
         return template.format(sattype=sattype, ts=timestamp.strftime(_TIMESTAMP_FORMAT), lat=lat, lon=lon, zoom=zoom)
 
     targ = target.withfiletemplate(filenamefunc, _TARGET_FORMAT, sattype=ghccsettings['info'], lat=ghccsettings['lat'],
-                                   lon=ghccsettings['lon'], zoom=ghccsettings['zoom'])
+                                   lon=ghccsettings['lon'], zoom=_REVERSE_ZOOM_MAP[ghccsettings['zoom']])
 
-    thesaver = saver.Session().create_context('ghcc', src, targ, saveperiod=save_period)
-    jobid = "_".join(
+    contextid = "_".join(
         [ghccsettings['info'], str(ghccsettings['lat']), str(ghccsettings['lon']), str(ghccsettings['zoom'])])
-    thesaver.submit(jobid, url, saveloc)
-    thesaver.runall()
+    thecontext = saver.Context(contextid, src, targ, saveperiod=save_period)
+    thecontext.submit(contextid, url, saveloc)
+    return thecontext
 
 
 def ghcc_timeextractor(url):
