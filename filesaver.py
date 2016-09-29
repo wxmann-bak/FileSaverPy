@@ -1,5 +1,6 @@
 import cmd
 from datetime import datetime
+import logging
 from tabulate import tabulate
 
 from plugins import ssd
@@ -32,6 +33,12 @@ class Session(cmd.Cmd):
         context = ssd.load_config(configfile)
         self._contexts[context.name] = context
         context.runall()
+
+    def do_kill(self, contextid):
+        if contextid not in self._contexts:
+            logging.warning('Cannot find context: ' + contextid)
+        else:
+            self._contexts[contextid].stopall()
 
     def do_exit(self, s):
         for context_id in self._contexts:

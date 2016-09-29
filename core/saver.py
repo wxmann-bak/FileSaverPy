@@ -62,10 +62,11 @@ class Context(object):
             self.runjob(jobid, begin, end)
 
     def stop(self, jobid):
-        thejob = self._jobs.get(jobid, None)
-        if thejob:
-            thejob.stop()
-        else:
+        try:
+            thejob = self._jobs[jobid]
+            if thejob.is_running():
+                thejob.stop()
+        except KeyError:
             logger.warn("Could not find job: {0} to stop".format(jobid))
 
     def stopall(self):
