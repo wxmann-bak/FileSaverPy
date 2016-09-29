@@ -9,6 +9,8 @@ __author__ = 'tangz'
 
 
 class Session(cmd.Cmd):
+    prompt = '(FileSaver) '
+
     def __init__(self):
         cmd.Cmd.__init__(self)
         self._contexts = {}
@@ -34,11 +36,17 @@ class Session(cmd.Cmd):
         self._contexts[context.name] = context
         context.runall()
 
-    def do_kill(self, contextid):
+    def do_kill_all(self, contextid):
         if contextid not in self._contexts:
             logging.warning('Cannot find context: ' + contextid)
         else:
             self._contexts[contextid].stopall()
+
+    def do_kill_job(self, jobid):
+        for contextid in self._contexts:
+            context = self._contexts[contextid]
+            if context.hasjob(jobid):
+                context.stop(jobid)
 
     def do_exit(self, s):
         for context_id in self._contexts:

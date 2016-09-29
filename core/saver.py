@@ -32,6 +32,9 @@ class Context(object):
         self.min_img_interval = min_img_interval
         self._jobs = {}
 
+    def hasjob(self, jobid):
+        return jobid in self._jobs
+
     def getjob(self, jobid):
         if jobid not in self._jobs:
             raise ValueError("Job {0} has not been submitted.".format(jobid))
@@ -73,8 +76,8 @@ class Context(object):
         for jobid in self._jobs:
             self.stop(jobid)
 
-    @classmethod
-    def _schedule_begin(cls, now, job, begin):
+    @staticmethod
+    def _schedule_begin(now, job, begin):
         if begin < now:
             raise ValueError("Begin time < right now")
         logger.info('Set job {0} to begin at {1}'.format(job.name, begin.strftime(_LOG_TIME_DATEFORMAT)))
@@ -82,8 +85,8 @@ class Context(object):
         timer = threading.Timer(dt.seconds, job.start)
         timer.start()
 
-    @classmethod
-    def _schedule_terminate(cls, now, job, end):
+    @staticmethod
+    def _schedule_terminate(now, job, end):
         if end < now:
             raise ValueError("End time < right now")
         logger.info('Set job {0} to terminate at {1}'.format(job.name, end.strftime(_LOG_TIME_DATEFORMAT)))
