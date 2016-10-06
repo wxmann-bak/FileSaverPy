@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 import urllib.request
@@ -12,14 +13,27 @@ class SaveError(Exception):
     pass
 
 
-def dosave(srcfile, destloc):
+def dosave(srcfile, destloc, retry_count=0, retries=3):
     if os.path.isfile(destloc):
         logger.warn("File: {0} already exists, cannot save it".format(destloc))
         return False
     else:
         logger.info("Saving file from {0} to {1}".format(srcfile, destloc))
-        urllib.request.urlretrieve(srcfile, destloc)
-        return True
+        try:
+            urllib.request.urlretrieve(srcfile, destloc)
+            logging.info('File successfully saved.')
+            return True
+        except:
+            count = retry_count
+            if retry_count == 0:
+                logging.exception('Error occurred while saving:')
+            else:
+                logging.info('Retry number: {0} failed...'.format(retry_count))
+            if count < retries:
+                count += 1
+                return dosave(srcfile, destloc, retry_count=count, retries=retries)
+            logging.info('Giving up!')
+            return False
 
 
 class Context(object):
