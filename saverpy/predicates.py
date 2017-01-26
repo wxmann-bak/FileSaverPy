@@ -2,10 +2,10 @@ import operator
 
 
 def valid_exts(*exts):
-    allowed_exts = [ext.replace('.', '') for ext in exts]
+    allowed_exts = [ext.strip().lower().replace('.', '') for ext in exts]
 
     def test_ext(src):
-        return src.ext in allowed_exts
+        return src.ext.lower() in allowed_exts
     return test_ext
 
 

@@ -50,7 +50,7 @@ class BatchConverter(BaseConverter):
 
     def __call__(self, url):
         urls = self._url_fanout(url)
-        return [src for src in (self.convert(url) for url in urls) if src is not None]
+        return tuple(src for src in (self.convert(url) for url in urls) if src is not None)
 
 
 # extracting out this function for testing purposes

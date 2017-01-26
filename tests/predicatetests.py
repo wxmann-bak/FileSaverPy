@@ -10,7 +10,7 @@ class PredicatesTests(unittest.TestCase):
         self.timestamp = datetime(2017, 1, 5, 12, 15)
         self.ext = 'jpg'
         self.imgname = 'img-1'
-        self.src = objects.source(url='http://google.com/img-1.jpg',
+        self.src = objects.source(url='http://blah.com/img-1.jpg',
                                   timestamp=self.timestamp,
                                   ext=self.ext,
                                   filename=self.imgname)
@@ -22,6 +22,10 @@ class PredicatesTests(unittest.TestCase):
     def test_ext_predicate_with_periods_in_args(self):
         self.assertTrue(predicates.valid_exts('.jpg', '.png')(self.src))
         self.assertFalse(predicates.valid_exts('.gif', '.png')(self.src))
+
+    def test_ext_predicate_case_insensitivity(self):
+        self.assertTrue(predicates.valid_exts('.JPG', '.PNG')(self.src))
+        self.assertFalse(predicates.valid_exts('.GIF', '.PNG')(self.src))
 
     def test_min_divisible_predicate(self):
         self.assertTrue(predicates.min_divisible_by(15)(self.src))
