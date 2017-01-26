@@ -2,7 +2,6 @@ import unittest
 from datetime import datetime
 from unittest.mock import patch
 
-from saverpy import converters
 from saverpy.converters import BaseConverter, BatchConverter, ConversionException
 
 
@@ -19,13 +18,7 @@ class ConvertersTests(unittest.TestCase):
         self.timeextractor = lambda url: self.dummy_another_timestamp
         self.urls_extracted = ['http://google.com/img-1.jpg', 'http://google.com/img-2.jpg',
                                'http://google.com/img-3.jpg']
-        self.to_urls_func = lambda url: self.urls_extracted
-
-    def test_check_if_url_refers_to_file(self):
-        not_a_file = 'http://www.google.com'
-        a_file = 'http://google.com/index.html'
-        self.assertFalse(converters.isfile(not_a_file))
-        self.assertTrue(converters.isfile(a_file))
+        self.url_fanout_func = lambda url: self.urls_extracted
 
     def test_should_convert_single_source_with_current_utc_timestamp(self):
         converter = BaseConverter(use_utc=True)
@@ -55,21 +48,21 @@ class ConvertersTests(unittest.TestCase):
             BaseConverter()('http://google.com/')
 
     def test_should_convert_multi_source_current_utc_timestamp(self):
-        converter = BatchConverter(self.to_urls_func, use_utc=True)
+        converter = BatchConverter(self.url_fanout_func, use_utc=True)
         srcs = converter(self.url)
         self._assertCorrectBatchSources(srcs, self.dummy_utc_timestamp)
 
     def test_should_convert_multi_source_with_timeextractor(self):
-        converter = BatchConverter(self.to_urls_func, timeextractor=self.timeextractor)
+        converter = BatchConverter(self.url_fanout_func, timeextractor=self.timeextractor)
         srcs = converter(self.url)
         self._assertCorrectBatchSources(srcs, self.dummy_another_timestamp)
 
     def test_should_skip_nonfile_urls_extracted_for_batch_sources(self):
         new_urls = list(self.urls_extracted)
         new_urls += ['http://google.com', 'this-is-not-even-a-url']
-        new_to_urls_func = lambda url: new_urls
+        new_url_fanout = lambda url: new_urls
 
-        converter = BatchConverter(new_to_urls_func, timeextractor=self.timeextractor)
+        converter = BatchConverter(new_url_fanout, timeextractor=self.timeextractor)
         srcs = converter(self.url)
         self._assertCorrectBatchSources(srcs, self.dummy_another_timestamp)
 

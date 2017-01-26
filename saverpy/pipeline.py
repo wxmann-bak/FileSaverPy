@@ -3,10 +3,10 @@ import functools
 
 class Pipeline(object):
     def __init__(self, *args):
-        self._ordered_funcs = reversed(args)
+        self._args = list(args)
 
     def __call__(self, arg):
-        composed_func = _compose(*self._ordered_funcs)
+        composed_func = _compose(*reversed(self._args))
         return composed_func(arg)
 
 

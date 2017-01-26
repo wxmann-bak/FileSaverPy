@@ -3,6 +3,7 @@ import urllib.parse
 from datetime import datetime
 
 from saverpy import objects
+from saverpy.webutil import isfile
 
 
 class BaseConverter(object):
@@ -43,20 +44,13 @@ class BaseConverter(object):
 
 
 class BatchConverter(BaseConverter):
-    def __init__(self, to_urls_func, timeextractor=None, use_utc=True):
+    def __init__(self, url_fanout_func, timeextractor=None, use_utc=True):
         super(BatchConverter, self).__init__(timeextractor, use_utc)
-        self._to_urls_func = to_urls_func
+        self._url_fanout = url_fanout_func
 
     def __call__(self, url):
-        urls = self._to_urls_func(url)
+        urls = self._url_fanout(url)
         return [src for src in (self.convert(url) for url in urls) if src is not None]
-
-
-def isfile(url):
-    urlcomponents = urllib.parse.urlparse(url)
-    basepath = os.path.basename(urlcomponents.path)
-    splitbasepath = os.path.splitext(basepath)
-    return bool(splitbasepath[1])
 
 
 # extracting out this function for testing purposes
